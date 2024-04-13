@@ -1,0 +1,17 @@
+html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+svg {
+    display: block; /* removes the bottom margin/gap */
+    background: white;
+    width: 100vw;
+    height: 100vh;
+}
+text {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    pointer-events: none; /* Prevents text from interfering with click events */
+}
