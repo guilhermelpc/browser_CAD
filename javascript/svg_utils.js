@@ -23,3 +23,10 @@ export function initCoordsText(parentElement) {
     coordsTextElement.textContent = "";
     return coordsTextElement;
 }
+
+export function cursorPoint(evt, svg) {
+    var pt = svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
