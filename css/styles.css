@@ -2,11 +2,11 @@ html, body {
     margin: 0;
     height: 100%;
     overflow: hidden;
-    background: #f0f0f0;
+    background: #555555;
 }
 svg {
     display: block; /* removes the bottom margin/gap */
-    background: white;
+    background: #afafaf;
     width: 100vw;
     height: 100vh;
 }

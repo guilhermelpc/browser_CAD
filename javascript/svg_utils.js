@@ -13,11 +13,6 @@ export function createSvgElement(elementName, attributes, parentElement, innerHT
     return element;
 }
 
-export function setViewBox(x, y, width, height, parentElement) {
-    parentElement.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
-}
-
-// Initialize the text element for displaying coordinates and append it to the SVG
 export function initCoordsText(parentElement) {
     let coordsTextElement = createSvgElement("text", {x:"50%",y:"95%", "text-anchor":"middle"}, parentElement);
     coordsTextElement.textContent = "";
@@ -29,4 +24,23 @@ export function cursorPoint(evt, svg) {
     pt.x = evt.clientX;
     pt.y = evt.clientY;
     return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
+    const aspectRatio = window.innerWidth / window.innerHeight;
+    let width, height;
+    // Decide whether to match the width or the height to the window
+    if (aspectRatio > 1) {
+        // Landscape orientation
+        height = viewBoxGlobal.height;  // Arbitrary unit; you can set this based on your needs
+        width = viewBoxGlobal.height * aspectRatio;
+    } else {
+        // Portrait orientation
+        width = viewBoxGlobal.width;  // Same arbitrary unit as above
+        height = width / aspectRatio;
+    }
+    viewBoxGlobal.width = width;
+    viewBoxGlobal.height = height;
+    parentElement.setAttribute('viewBox', `${viewBoxGlobal.x} ${viewBoxGlobal.y} 
+        ${viewBoxGlobal.width} ${viewBoxGlobal.height}`);
 }
