@@ -1,13 +1,12 @@
-import { createSvgElement, setViewBox } from './svg_utils.js';
+import { createSvgElement, setViewBox, initCoordsText } from './svg_utils.js';
 
 const svgElement = document.getElementById("svgCanvas");
 
 let clickCoordinatesGlobal = []; // Array to store coordinates globally
-let coordsTextElementGlobal = initCoordsText();  // This will reference the text element displaying the coordinates
+let coordsTextElementGlobal = initCoordsText(svgElement);  // This will reference the text element displaying the coordinates
 let timeoutHandleGlobal = null;  // This will store the timeout handle
 let viewBoxGlobal = { x: 0, y: 0, width: 400, height: 400 };
 
-initCoordsText();
 setViewBox(viewBoxGlobal.x, viewBoxGlobal.y, viewBoxGlobal.width, viewBoxGlobal.height, svgElement);
 
 svgElement.addEventListener("click", function(event) {
@@ -51,12 +50,7 @@ svgElement.addEventListener('wheel', function(event) {
     setViewBox(viewBoxGlobal.x, viewBoxGlobal.y, viewBoxGlobal.width, viewBoxGlobal.height, svgElement);
 });
 
-// Initialize the text element for displaying coordinates and append it to the SVG
-function initCoordsText() {
-    let coordsTextElement = createSvgElement("text", {x:"50%",y:"95%", "text-anchor":"middle"}, svgElement);
-    coordsTextElement.textContent = "";
-    return coordsTextElement;
-}
+
 
 function cursorPoint(evt, svg) {
     var pt = svg.createSVGPoint();
