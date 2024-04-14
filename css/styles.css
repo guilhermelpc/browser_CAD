@@ -26,13 +26,12 @@ text {
     font-size: 14px;
     font-family: Arial, sans-serif;
     color: #000000;
-
 }
 
 #commandLineContainer {
     position: fixed;
     left: 0;
-    right: 0;
+    right: 70%;
     bottom: 0;
     padding: 10px;
     background: rgba(255, 255, 255, 0);  /* Fully transparent background */

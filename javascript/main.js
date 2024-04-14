@@ -1,10 +1,8 @@
-
+updateViewBoxAspectRatio(ViewBoxG, svgElement);
 
 // Test Fixed Text:
-const TestTextElemG = createSvgElement("text", {x:200,y:200, "text-anchor":"middle"}, svgElement);
+const TestTextElemG = createSvgElement("text", {x:ViewBoxG.width/2,y:ViewBoxG.height/2, "text-anchor":"middle"}, svgElement);
 TestTextElemG.textContent = "Teste";
 // Test coords text:
-let CoordsTextElemG = createSvgElement("text", {x:200,y:300, "text-anchor":"middle"}, svgElement);
+let CoordsTextElemG = createSvgElement("text", {x:ViewBoxG.width/2,y:ViewBoxG.height/1.1, "text-anchor":"middle"}, svgElement);
 CoordsTextElemG.textContent = "";
-
-updateViewBoxAspectRatio(ViewBoxG, svgElement);
