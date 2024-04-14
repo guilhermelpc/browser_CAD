@@ -14,7 +14,7 @@ export function createSvgElement(elementName, attributes, parentElement, innerHT
 }
 
 export function initCoordsText(parentElement) {
-    let coordsTextElement = createSvgElement("text", {x:"50%",y:"95%", "text-anchor":"middle"}, parentElement);
+    let coordsTextElement = createSvgElement("text", {x:200,y:300, "text-anchor":"middle"}, parentElement);
     coordsTextElement.textContent = "";
     return coordsTextElement;
 }
@@ -23,6 +23,7 @@ export function cursorPoint(evt, svg) {
     var pt = svg.createSVGPoint();
     pt.x = evt.clientX;
     pt.y = evt.clientY;
+    // console.log(pt.matrixTransform(svg.getScreenCTM().inverse()));
     return pt.matrixTransform(svg.getScreenCTM().inverse());
 }
 

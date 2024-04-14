@@ -2,62 +2,83 @@ import { createSvgElement, initCoordsText, cursorPoint, updateViewBoxAspectRatio
 
 const svgElement = document.getElementById("svgCanvas");
 
-let clickCoordinatesGlobal = [200, 200]; // Store last clicked coordinates globally
-let coordsTextElementGlobal = initCoordsText(svgElement);  // Text element displaying the coordinates
-let testTextElem = createSvgElement("text", {x:"50%",y:"50%", "text-anchor":"middle"}, svgElement);
-testTextElem.textContent = "Teste";
-let timeoutHandleGlobal = 0;  // Stores the timeout handle
-let viewBoxGlobal = { x: 0, y: 0, width: 400, height: 400 }; // Initial coords -- will update during runtime
-updateViewBoxAspectRatio(viewBoxGlobal, svgElement);
+let ClickCoordsG = [200, 200]; // Store last clicked coordinates globally
+let ViewBoxG = { x: 0, y: 0, width: 400, height: 400 };
+let ZoomPositionG = { x: 200, y: 200 }
+let TargetZoomG = { x: 200, y: 200 }
+let TimeoutHandleG = 0;
+let CoordsTextElemG = initCoordsText(svgElement);  // Text element displaying the coordinates
+let TestTextElemG = createSvgElement("text", {x:200,y:200, "text-anchor":"middle"}, svgElement);
+TestTextElemG.textContent = "Teste";
+
+updateViewBoxAspectRatio(ViewBoxG, svgElement);
 
 // Click functionality to store (and print) the last click coords
 svgElement.addEventListener("click", function(event) {
     const svgPoint = cursorPoint(event, svgElement);
     const x = svgPoint.x;
     const y = svgPoint.y;
-    clickCoordinatesGlobal = [x, y];
-    coordsTextElementGlobal.textContent = `${parseFloat(x).toFixed(1)}, ${parseFloat(y).toFixed(1)}`;
-    console.log(parseFloat(x).toFixed(2) + " " + parseFloat(x).toFixed(2))
+    ClickCoordsG = [x, y];
+    CoordsTextElemG.textContent = `${parseFloat(x).toFixed(1)}, ${parseFloat(y).toFixed(1)}`;
+    // console.log(parseFloat(x).toFixed(2) + " " + parseFloat(x).toFixed(2))
+    // console.log( "client X: " + event.clientX)
     
-    clearTimeout(timeoutHandleGlobal);
-    timeoutHandleGlobal = setTimeout(() => {
-        coordsTextElementGlobal.textContent = "";
+    clearTimeout(TimeoutHandleG);
+    TimeoutHandleG = setTimeout(() => {
+        CoordsTextElemG.textContent = "";
     }, 2000);
 });
 
-// Zoom functionality:
+// Zoom functionality
 svgElement.addEventListener('wheel', function(event) {
     event.preventDefault();  // Prevent the page from scrolling
+    const cursorPointPreZoom = cursorPoint(event, svgElement);
 
-    const cursorPointBeforeZoom = cursorPoint(event, svgElement);
+    if (event.clientX != ZoomPositionG.x || event.clientY != ZoomPositionG.y){
+        // Window cursor position:
+        ZoomPositionG.x = event.clientX;
+        ZoomPositionG.y = event.clientY;
+        // SVG cursor position:
+        TargetZoomG = { x: cursorPointPreZoom.x, y: cursorPointPreZoom.y };
+    }  
+    // SVG Coords:
+    let center = {x: ViewBoxG.x + ViewBoxG.width/2, y: ViewBoxG.y + ViewBoxG.height/2 };
+    let vectorTarget = { x: TargetZoomG.x - center.x, y: TargetZoomG.y - center.y };
+    TargetZoomG.x -= 0.01*( TargetZoomG.x - center.x) / Math.sqrt(Math.abs(TargetZoomG.x**2 - center.x**2));
+    TargetZoomG.y -= 0.01*( TargetZoomG.y - center.y ) / Math.sqrt(Math.abs(TargetZoomG.y**2 - center.y**2));
+    // let vectorTargetSize = Math.sqrt(vectorTarget.x ** 2 + vectorTarget.y ** 2);
+    // let vectorTargetNormalized = { x: vectorTarget.x / vectorTargetSize, y: vectorTarget.y / vectorTargetSize };
+    // console.log(`vector tgt:`+ vectorTarget.x);
 
-    // Base scale factor - determines how quickly the view zooms in and out:
-    const baseScaleFactor = 1.3;
-
-    // Calculate the dynamic scale factor based on scroll intensity
-    let scrollIntensity = Math.min(Math.abs(event.deltaY), 50); // Math.min limits the max zoom speed
-    let dynamicScaleFactor = Math.pow(baseScaleFactor, scrollIntensity / 50);
+    // Scroll intensity:
+    const baseScaleFactor = 1.1;
+    let scrollIntensity = Math.min(Math.abs(event.deltaY), 50);
+    let dynamScaleFactor = Math.pow(baseScaleFactor, scrollIntensity / 50);
 
     let newWidth, newHeight, newX, newY;
-    if (event.deltaY > 0) {// Zoom in - reduce the viewBox dimensions
-        newWidth = viewBoxGlobal.width / dynamicScaleFactor;
-        newHeight = viewBoxGlobal.height / dynamicScaleFactor;
-        newX = cursorPointBeforeZoom.x - (cursorPointBeforeZoom.x - viewBoxGlobal.x) / dynamicScaleFactor;
-        newY = cursorPointBeforeZoom.y - (cursorPointBeforeZoom.y - viewBoxGlobal.y) / dynamicScaleFactor;
-    } else {// Zoom out - increase the viewBox dimensions
-        newWidth = viewBoxGlobal.width * dynamicScaleFactor;
-        newHeight = viewBoxGlobal.height * dynamicScaleFactor;
-        newX = cursorPointBeforeZoom.x - (cursorPointBeforeZoom.x - viewBoxGlobal.x) * dynamicScaleFactor;
-        newY = cursorPointBeforeZoom.y - (cursorPointBeforeZoom.y - viewBoxGlobal.y) * dynamicScaleFactor;
+
+    if (event.deltaY > 0) {
+        // Zoom in (scroll up trackpad)
+        newWidth = ViewBoxG.width / dynamScaleFactor;
+        newHeight = ViewBoxG.height / dynamScaleFactor;
+        newX = (cursorPointPreZoom.x - (cursorPointPreZoom.x - ViewBoxG.x) / dynamScaleFactor) + 0.00001 * vectorTarget.x * newWidth/ dynamScaleFactor;
+        newY = (cursorPointPreZoom.y - (cursorPointPreZoom.y - ViewBoxG.y) / dynamScaleFactor) + 0.00001 * vectorTarget.y * newHeight/ dynamScaleFactor;
+        console.log(vectorTarget)
+    } else {
+        // Zoom out (scroll down trackpad)
+        newWidth = ViewBoxG.width * dynamScaleFactor;
+        newHeight = ViewBoxG.height * dynamScaleFactor;
+        newX = (cursorPointPreZoom.x - (cursorPointPreZoom.x - ViewBoxG.x) * dynamScaleFactor);//+ 0.00001 * vectorTarget.x * newWidth* dynamScaleFactor;
+        newY = (cursorPointPreZoom.y - (cursorPointPreZoom.y - ViewBoxG.y) * dynamScaleFactor);//+ 0.00001 * vectorTarget.y * newHeight* dynamScaleFactor;
     }
 
-    // Update the global viewBox dimensions
-    viewBoxGlobal.x = newX;
-    viewBoxGlobal.y = newY;
-    viewBoxGlobal.width = newWidth;
-    viewBoxGlobal.height = newHeight;
+    // console.log(zoomTrgtB)
+    ViewBoxG.x = newX;
+    ViewBoxG.y = newY;
+    ViewBoxG.width = newWidth;
+    ViewBoxG.height = newHeight;
 
     // Update the SVG's viewBox attribute to apply the zoom
-    svgElement.setAttribute('viewBox', `${viewBoxGlobal.x} ${viewBoxGlobal.y} 
-        ${viewBoxGlobal.width} ${viewBoxGlobal.height}`);
+    svgElement.setAttribute('viewBox', `${ViewBoxG.x} ${ViewBoxG.y} 
+        ${ViewBoxG.width} ${ViewBoxG.height}`);
 });
