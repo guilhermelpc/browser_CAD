@@ -46,9 +46,6 @@ svgElement.addEventListener('wheel', function(event) {
     let vectorTarget = { x: TargetZoomG.x - center.x, y: TargetZoomG.y - center.y };
     TargetZoomG.x -= 0.01*( TargetZoomG.x - center.x) / Math.sqrt(Math.abs(TargetZoomG.x**2 - center.x**2));
     TargetZoomG.y -= 0.01*( TargetZoomG.y - center.y ) / Math.sqrt(Math.abs(TargetZoomG.y**2 - center.y**2));
-    // let vectorTargetSize = Math.sqrt(vectorTarget.x ** 2 + vectorTarget.y ** 2);
-    // let vectorTargetNormalized = { x: vectorTarget.x / vectorTargetSize, y: vectorTarget.y / vectorTargetSize };
-    // console.log(`vector tgt:`+ vectorTarget.x);
 
     // Scroll intensity:
     const baseScaleFactor = 1.1;
@@ -68,8 +65,8 @@ svgElement.addEventListener('wheel', function(event) {
         // Zoom out (scroll down trackpad)
         newWidth = ViewBoxG.width * dynamScaleFactor;
         newHeight = ViewBoxG.height * dynamScaleFactor;
-        newX = (cursorPointPreZoom.x - (cursorPointPreZoom.x - ViewBoxG.x) * dynamScaleFactor);//+ 0.00001 * vectorTarget.x * newWidth* dynamScaleFactor;
-        newY = (cursorPointPreZoom.y - (cursorPointPreZoom.y - ViewBoxG.y) * dynamScaleFactor);//+ 0.00001 * vectorTarget.y * newHeight* dynamScaleFactor;
+        newX = (cursorPointPreZoom.x - (cursorPointPreZoom.x - ViewBoxG.x) * dynamScaleFactor)+ 0.00001 * vectorTarget.x * newWidth* dynamScaleFactor;
+        newY = (cursorPointPreZoom.y - (cursorPointPreZoom.y - ViewBoxG.y) * dynamScaleFactor)+ 0.00001 * vectorTarget.y * newHeight* dynamScaleFactor;
     }
 
     // console.log(zoomTrgtB)
@@ -82,3 +79,44 @@ svgElement.addEventListener('wheel', function(event) {
     svgElement.setAttribute('viewBox', `${ViewBoxG.x} ${ViewBoxG.y} 
         ${ViewBoxG.width} ${ViewBoxG.height}`);
 });
+
+const commandLine = document.getElementById('commandLine');
+const commandHistory = document.getElementById('commandHistory');
+let commandHistoryList = [];
+
+document.addEventListener('keydown', function(event) {
+    if (document.activeElement !== commandLine) {
+        commandLine.focus();
+    }
+});
+
+commandLine.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+        let command = this.value;
+        // Repeat last command if empty input:
+        if (command == '') {
+            if (commandHistoryList.slice(-1) != ''){
+                console.log('repeat last command');
+                command = commandHistoryList.slice(-1)
+                this.value = command;
+                return;
+            } else {
+                return;
+            }
+        }
+        // Update command history
+        updateCommandHistory(command);
+        this.value = '';  // Clear the input after the command is entered
+    }
+});
+
+function updateCommandHistory(command) {
+    // Add the new command to the end of the history array
+    commandHistoryList.push(command);
+    // Display only the last 4 commands
+    const lastFourCommands = commandHistoryList.slice(-4);  // Get the last 4 elements
+    // Update the display, the newest command is at the bottom
+    commandHistory.innerHTML = lastFourCommands.join('<br>');
+}
+
+
