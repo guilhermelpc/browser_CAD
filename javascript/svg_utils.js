@@ -1,4 +1,7 @@
 const svgElement = document.getElementById("svgCanvas");
+let ViewBoxG = { x: 0, y: 0, width: 400, height: 400 };
+let ZoomPositionG = { x: 200, y: 200 }
+let TargetZoomG = { x: 200, y: 200 }
 
 function createSvgElement(elementName, attributes, parentElement, innerHTML = null) {
     const element = document.createElementNS("http://www.w3.org/2000/svg", elementName);
@@ -49,6 +52,7 @@ svgElement.addEventListener('wheel', function(event) {
     event.preventDefault();  // Prevent the page from scrolling
     const cursorPointPreZoom = getCursorCoords(event, svgElement);
 
+    // Checks for new zoom target:
     if (event.clientX != ZoomPositionG.x || event.clientY != ZoomPositionG.y){
         // Window cursor position:
         ZoomPositionG.x = event.clientX;
@@ -56,11 +60,15 @@ svgElement.addEventListener('wheel', function(event) {
         // SVG cursor position:
         TargetZoomG = { x: cursorPointPreZoom.x, y: cursorPointPreZoom.y };
     }  
-    // SVG Coords:
-    let center = {x: ViewBoxG.x + ViewBoxG.width/2, y: ViewBoxG.y + ViewBoxG.height/2 };
-    let vectorTarget = { x: TargetZoomG.x - center.x, y: TargetZoomG.y - center.y };
-    TargetZoomG.x -= 0.01*( TargetZoomG.x - center.x) / Math.sqrt(Math.abs(TargetZoomG.x**2 - center.x**2));
-    TargetZoomG.y -= 0.01*( TargetZoomG.y - center.y ) / Math.sqrt(Math.abs(TargetZoomG.y**2 - center.y**2));
+
+    // SVG Coords target position referenced by screen center:
+    let center = { x: ViewBoxG.x + ViewBoxG.width/2, y: ViewBoxG.y + ViewBoxG.height/2 };
+    let vectorTgtCenterDist = { x: TargetZoomG.x - center.x, y: TargetZoomG.y - center.y };
+    // Target smoothing:
+    TargetZoomG.x -= 0.01 * ( vectorTgtCenterDist.x ) / Math.abs(vectorTgtCenterDist.x);
+    TargetZoomG.y -= 0.01 * ( vectorTgtCenterDist.y ) / Math.abs(vectorTgtCenterDist.y);
+    // TargetZoomG.x -= 0.01 * ( vectorTgtCenterDist.x ) / Math.sqrt(Math.abs(TargetZoomG.x ** 2 - center.x ** 2));
+    // TargetZoomG.y -= 0.01 * ( vectorTgtCenterDist.y ) / Math.sqrt(Math.abs(TargetZoomG.y ** 2 - center.y ** 2));
 
     // Scroll intensity:
     const baseScaleFactor = 1.1;
@@ -73,14 +81,14 @@ svgElement.addEventListener('wheel', function(event) {
         // Zoom in (scroll up trackpad)
         newWidth = ViewBoxG.width / dynamScaleFactor;
         newHeight = ViewBoxG.height / dynamScaleFactor;
-        newX = (cursorPointPreZoom.x - (cursorPointPreZoom.x - ViewBoxG.x) / dynamScaleFactor) + 0.00001 * vectorTarget.x * newWidth/ dynamScaleFactor;
-        newY = (cursorPointPreZoom.y - (cursorPointPreZoom.y - ViewBoxG.y) / dynamScaleFactor) + 0.00001 * vectorTarget.y * newHeight/ dynamScaleFactor;
+        newX = (cursorPointPreZoom.x - (cursorPointPreZoom.x - ViewBoxG.x) / dynamScaleFactor) + 0.00001 * vectorTgtCenterDist.x * newWidth/ dynamScaleFactor;
+        newY = (cursorPointPreZoom.y - (cursorPointPreZoom.y - ViewBoxG.y) / dynamScaleFactor) + 0.00001 * vectorTgtCenterDist.y * newHeight/ dynamScaleFactor;
     } else {
         // Zoom out (scroll down trackpad)
         newWidth = ViewBoxG.width * dynamScaleFactor;
         newHeight = ViewBoxG.height * dynamScaleFactor;
-        newX = (cursorPointPreZoom.x - (cursorPointPreZoom.x - ViewBoxG.x) * dynamScaleFactor)+ 0.00001 * vectorTarget.x * newWidth* dynamScaleFactor;
-        newY = (cursorPointPreZoom.y - (cursorPointPreZoom.y - ViewBoxG.y) * dynamScaleFactor)+ 0.00001 * vectorTarget.y * newHeight* dynamScaleFactor;
+        newX = (cursorPointPreZoom.x - (cursorPointPreZoom.x - ViewBoxG.x) * dynamScaleFactor)+ 0.00001 * vectorTgtCenterDist.x * newWidth* dynamScaleFactor;
+        newY = (cursorPointPreZoom.y - (cursorPointPreZoom.y - ViewBoxG.y) * dynamScaleFactor)+ 0.00001 * vectorTgtCenterDist.y * newHeight* dynamScaleFactor;
     }
 
     // console.log(zoomTrgtB)
