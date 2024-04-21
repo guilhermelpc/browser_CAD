@@ -1,6 +1,7 @@
 import { GlobalElems, GlobalState } from './global_state.js';
 import { createSvgElement, getCursorCoords, updateViewBoxAspectRatio } from './svg_utils.js';
-
+import { } from './cli_utils.js';
+ 
 updateViewBoxAspectRatio(GlobalState.ViewBox, GlobalElems.SvgElement);
 
 // Test Fixed Text:

@@ -4,12 +4,13 @@ export const GlobalState = {
     ZoomPosition: { x: 200, y: 200 },
 
     TimeoutHandle: 0,
+
+    CLIHistoryList: [],
 }
 
 export const GlobalElems = {
     SvgElement: document.getElementById("svgCanvas"),
-    CoordsTextElem: {},
-
-    commandHistory: document.getElementById('commandHistory'),
-    commandLine: document.getElementById('commandLine'),
+    CoordsTextElem: {}, // SVG elem. created in main
+    CommandHistory: document.getElementById('commandHistory'),
+    CommandLine: document.getElementById('commandLine'),
 }
