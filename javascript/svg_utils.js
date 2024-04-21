@@ -74,14 +74,14 @@ svgElement.addEventListener('wheel', function(event) {
         // Zoom in (scroll up trackpad)
         newWidth = ViewBoxG.width / dynamScaleFactor;
         newHeight = ViewBoxG.height / dynamScaleFactor;
-        newX = TargetZoomG.x - (TargetZoomG.x - ViewBoxG.x) / (dynamScaleFactor);// + 0.00001 * vectorTgtCenterDist.x * newWidth/ dynamScaleFactor;
-        newY = TargetZoomG.y - (TargetZoomG.y - ViewBoxG.y) / (dynamScaleFactor);// + 0.00001 * vectorTgtCenterDist.y * newHeight/ dynamScaleFactor;
+        newX = TargetZoomG.x - (TargetZoomG.x - ViewBoxG.x) / (dynamScaleFactor);
+        newY = TargetZoomG.y - (TargetZoomG.y - ViewBoxG.y) / (dynamScaleFactor);
     } else {
         // Zoom out (scroll down trackpad)
         newWidth = ViewBoxG.width * dynamScaleFactor;
         newHeight = ViewBoxG.height * dynamScaleFactor;
-        newX = center.x - (center.x - ViewBoxG.x) * (dynamScaleFactor);//+ 0.00001 * vectorTgtCenterDist.x * newWidth/(dynamScaleFactor);
-        newY = center.y - (center.y - ViewBoxG.y) * (dynamScaleFactor);//+ 0.00001 * vectorTgtCenterDist.y * newHeight/(dynamScaleFactor);
+        newX = TargetZoomG.x - (TargetZoomG.x - ViewBoxG.x) * (dynamScaleFactor);
+        newY = TargetZoomG.y - (TargetZoomG.y - ViewBoxG.y) * (dynamScaleFactor);
     }
 
     // console.log(zoomTrgtB)

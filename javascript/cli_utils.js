@@ -3,24 +3,6 @@ const commandLine = document.getElementById('commandLine');
 
 let commandHistoryList = [];
 
-// Handles CLI input after Enter and Spacebar:
-function handleCommandCLI(input) {
-    // If not empty input:
-    if (input != '') {
-        updateTimelineCLI(input);
-        input = '';  // Clear the input after the command is entered
-        return input;
-    }
-    if (input == '' && commandHistoryList.slice(-1) != '') {
-        console.log('repeat last command');
-        return commandHistoryList.slice(-1);
-    }
-    if (input == '' && commandHistoryList.slice(-1) == '') {
-        return '';
-    }
-
-}
-
 // CLI Timeline update:
 function updateTimelineCLI(command) {
     commandHistoryList.push(command); // Adds the new command to the end of the history array
@@ -28,11 +10,39 @@ function updateTimelineCLI(command) {
     commandHistory.innerHTML = lastFourCommands.join('<br>'); // Updates the display, newest command is at the bottom
 }
 
-// Automatic CLI focus, spacebar handler:
+// Handles CLI input after Enter and Spacebar:
+function submitInputCLI(input) { // => command_exec.js
+    
+    if (input != '') { // If not empty input
+        updateTimelineCLI(input);
+        input = '';  // Clear the input after the command is entered
+        
+        // Call command processor here
+
+        return input;
+    }
+    if (input == '' && commandHistoryList.slice(-1) != '') { // If empty input and there's history
+        console.log('repeat last command');
+        return commandHistoryList.slice(-1);
+    }
+    if (input == '' && commandHistoryList.slice(-1) == '') { // If empty input and there's no history
+        return '';
+    }
+}
+
+// Esc functionality:
+function handleEsc() {
+    commandLine.value = '';
+}
+
+// Automatic CLI focus, spacebar handler, esc handler:
 document.addEventListener('keydown', function(event) {
+    if(event.key === 'Escape') {
+        handleEsc();
+    }
     if (event.key === ' ') {
         event.preventDefault(); // Prevents ' ' to be inserted into CLI
-        commandLine.value = handleCommandCLI(commandLine.value);
+        commandLine.value = submitInputCLI(commandLine.value);
         return;
     }
     if (document.activeElement !== commandLine) {
@@ -43,7 +53,7 @@ document.addEventListener('keydown', function(event) {
 // Handles Enter Key:
 commandLine.addEventListener('keypress', function(event) {
     if (event.key === 'Enter') {
-        this.value = handleCommandCLI(this.value);  // Clear the input after the command is entered
+        this.value = submitInputCLI(this.value);  // Clear the input after the command is entered or fetch last command
         return;
     }
 });
