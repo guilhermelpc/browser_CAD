@@ -1,8 +1,6 @@
-const svgElement = document.getElementById("svgCanvas");
-let ViewBoxG = { x: 0, y: 0, width: 400, height: 400 };
-let ZoomPositionG = { x: 200, y: 200 };
+import { GlobalElems, GlobalState } from './global_state.js';
 
-function createSvgElement(elementName, attributes, parentElement, innerHTML = null) {
+export function createSvgElement(elementName, attributes, parentElement, innerHTML = null) {
     const element = document.createElementNS("http://www.w3.org/2000/svg", elementName);
 
     for (const [key, value] of Object.entries(attributes)) {
@@ -18,7 +16,7 @@ function createSvgElement(elementName, attributes, parentElement, innerHTML = nu
 }
 
 // Get cursor SVG coords:
-function getCursorCoords(evt, svg) {
+export function getCursorCoords(evt, svg) {
     var pt = svg.createSVGPoint();
     pt.x = evt.clientX;
     pt.y = evt.clientY;
@@ -27,7 +25,7 @@ function getCursorCoords(evt, svg) {
 }
 
 // Executed when the main code starts:
-function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
+export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
     const aspectRatio = window.innerWidth / window.innerHeight;
     let width, height;
     // Decide whether to match the width or the height to the window
@@ -47,19 +45,19 @@ function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
 }
 
 // Zoom functionality:
-svgElement.addEventListener('wheel', function(event) {
+GlobalElems.SvgElement.addEventListener('wheel', function(event) {
     event.preventDefault();  // Prevent the page from scrolling
-    const cursorPointPreZoom = getCursorCoords(event, svgElement);
+    const cursorPointPreZoom = getCursorCoords(event, GlobalElems.SvgElement);
 
-    let center = { x: ViewBoxG.x + ViewBoxG.width/2, y: ViewBoxG.y + ViewBoxG.height/2 };
+    let center = { x: GlobalState.ViewBox.x + GlobalState.ViewBox.width/2, y: GlobalState.ViewBox.y + GlobalState.ViewBox.height/2 };
 
     // Checks for new zoom target:
-    if (event.clientX != ZoomPositionG.x || event.clientY != ZoomPositionG.y){
+    if (event.clientX != GlobalState.ZoomPosition.x || event.clientY != GlobalState.ZoomPosition.y){
         // Window cursor position:
-        ZoomPositionG.x = event.clientX;
-        ZoomPositionG.y = event.clientY;
+        GlobalState.ZoomPosition.x = event.clientX;
+        GlobalState.ZoomPosition.y = event.clientY;
         // SVG cursor position:
-        TargetZoomG = { x: cursorPointPreZoom.x, y: cursorPointPreZoom.y };
+        GlobalState.TgtZoom = { x: cursorPointPreZoom.x, y: cursorPointPreZoom.y };
         // SVG Coords target position referenced by screen center:
     }
 
@@ -72,39 +70,38 @@ svgElement.addEventListener('wheel', function(event) {
 
     if (event.deltaY > 0) {
         // Zoom in (scroll up trackpad)
-        newWidth = ViewBoxG.width / dynamScaleFactor;
-        newHeight = ViewBoxG.height / dynamScaleFactor;
-        newX = TargetZoomG.x - (TargetZoomG.x - ViewBoxG.x) / (dynamScaleFactor);
-        newY = TargetZoomG.y - (TargetZoomG.y - ViewBoxG.y) / (dynamScaleFactor);
+        newWidth = GlobalState.ViewBox.width / dynamScaleFactor;
+        newHeight = GlobalState.ViewBox.height / dynamScaleFactor;
+        newX = GlobalState.TgtZoom.x - (GlobalState.TgtZoom.x - GlobalState.ViewBox.x) / (dynamScaleFactor);
+        newY = GlobalState.TgtZoom.y - (GlobalState.TgtZoom.y - GlobalState.ViewBox.y) / (dynamScaleFactor);
     } else {
         // Zoom out (scroll down trackpad)
-        newWidth = ViewBoxG.width * dynamScaleFactor;
-        newHeight = ViewBoxG.height * dynamScaleFactor;
-        newX = TargetZoomG.x - (TargetZoomG.x - ViewBoxG.x) * (dynamScaleFactor);
-        newY = TargetZoomG.y - (TargetZoomG.y - ViewBoxG.y) * (dynamScaleFactor);
+        newWidth = GlobalState.ViewBox.width * dynamScaleFactor;
+        newHeight = GlobalState.ViewBox.height * dynamScaleFactor;
+        newX = GlobalState.TgtZoom.x - (GlobalState.TgtZoom.x - GlobalState.ViewBox.x) * (dynamScaleFactor);
+        newY = GlobalState.TgtZoom.y - (GlobalState.TgtZoom.y - GlobalState.ViewBox.y) * (dynamScaleFactor);
     }
 
     // console.log(zoomTrgtB)
-    ViewBoxG.x = newX;
-    ViewBoxG.y = newY;
-    ViewBoxG.width = newWidth;
-    ViewBoxG.height = newHeight;
+    GlobalState.ViewBox.x = newX;
+    GlobalState.ViewBox.y = newY;
+    GlobalState.ViewBox.width = newWidth;
+    GlobalState.ViewBox.height = newHeight;
 
     // Update the SVG's viewBox attribute to apply the zoom
-    svgElement.setAttribute('viewBox', `${ViewBoxG.x} ${ViewBoxG.y} 
-        ${ViewBoxG.width} ${ViewBoxG.height}`);
+    GlobalElems.SvgElement.setAttribute('viewBox', `${GlobalState.ViewBox.x} ${GlobalState.ViewBox.y} 
+        ${GlobalState.ViewBox.width} ${GlobalState.ViewBox.height}`);
 });
 
 // Test click functionality to print the last click coords
-let TimeoutHandleG = 0;
-svgElement.addEventListener("click", function(event) {
-    const svgPoint = getCursorCoords(event, svgElement);
+GlobalElems.SvgElement.addEventListener("click", function(event) {
+    const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
     const x = svgPoint.x;
     const y = svgPoint.y;
-    CoordsTextElemG.textContent = `${parseFloat(x).toFixed(1)}, ${parseFloat(y).toFixed(1)}`;
+    GlobalElems.CoordsTextElem.textContent = `${parseFloat(x).toFixed(1)}, ${parseFloat(y).toFixed(1)}`;
     
-    clearTimeout(TimeoutHandleG);
-    TimeoutHandleG = setTimeout(() => {
-        CoordsTextElemG.textContent = "";
+    clearTimeout(GlobalState.TimeoutHandle);
+    GlobalState.TimeoutHandle = setTimeout(() => {
+        GlobalElems.CoordsTextElem.textContent = "";
     }, 2000);
 });
