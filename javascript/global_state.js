@@ -8,6 +8,7 @@ export const GlobalState = {
     CLIHistoryList: [],
 
     ExecutionHistory: null, // Defined as a CommandHistory class by main.js
+    Processor: null, // Defined as a Processor class by main.js
 }
 
 export const GlobalElems = {

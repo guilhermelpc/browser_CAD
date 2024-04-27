@@ -78,7 +78,7 @@ export class CommandHistory {
 }
 
 // Command Processor with a Global Command Map
-class CommandProcessor {
+export class CommandProcessor {
     constructor(history) {
         this.history = history;
         this.commandMap = {
@@ -94,17 +94,4 @@ class CommandProcessor {
             throw new Error('Command not supported');
         }
     }
-}
-
-// Usage
-const history = new CommandHistory();
-const processor = new CommandProcessor(history);
-
-// Simulating Commands
-try {
-    processor.executeCommand('rectangle');  // Outputs drawing logs and executes command
-    history.undo();  // Should undo the rectangle drawing
-    history.redo();  // Should redo the rectangle drawing
-} catch (error) {
-    console.log(error.message);
 }

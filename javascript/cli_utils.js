@@ -7,15 +7,23 @@ function updateTimelineCLI(command) {
     GlobalElems.CommandHistory.innerHTML = lastFourCommands.join('<br>'); // Updates the display, newest command is at the bottom
 }
 
-// Handles CLI input after Enter and Spacebar:
+// Handles CLI input after Enter or Spacebar:
 function submitInputCLI(input) { // => command_exec.js
     if (input != '') { // If not empty input
         updateTimelineCLI(input);
-        input = '';  // Clear the input after the command is entered
-        
-        // Call command processor here
 
-        return input;
+        // Simulating Commands:
+        try {
+            GlobalState.Processor.executeCommand(input);  // Outputs drawing logs and executes command
+            GlobalState.ExecutionHistory.undo();  // Should undo the rectangle drawing
+            GlobalState.ExecutionHistory.redo();  // Should redo the rectangle drawing
+        } catch (error) {
+            console.log(error.message);
+        }
+
+        input = '';  // Clear the input after the command is entered
+
+        return '';
     }
     if (input == '' && GlobalState.CLIHistoryList.slice(-1) != '') { // If empty input and there's history
         console.log('repeat last command');
