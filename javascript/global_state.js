@@ -6,11 +6,13 @@ export const GlobalState = {
     TimeoutHandle: 0,
 
     CLIHistoryList: [],
+
+    ExecutionHistory: null, // Defined as a CommandHistory class by main.js
 }
 
 export const GlobalElems = {
     SvgElement: document.getElementById("svgCanvas"),
-    CoordsTextElem: {}, // SVG elem. created in main
+    CoordsTextElem: {}, // SVG elem. created in main.js
     CommandHistory: document.getElementById('commandHistory'),
     CommandLine: document.getElementById('commandLine'),
 }

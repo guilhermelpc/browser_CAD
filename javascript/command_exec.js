@@ -1,3 +1,5 @@
+import { GlobalElems, GlobalState } from './global_state.js';
+
 class Command {
     execute() {}
     undo() {}
@@ -45,7 +47,7 @@ class ParametricObject {
 }
 
 // Command History for Undo/Redo
-class CommandHistory {
+export class CommandHistory {
     constructor() {
         this.undoStack = [];
         this.redoStack = [];
