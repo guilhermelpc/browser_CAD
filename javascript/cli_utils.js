@@ -1,6 +1,7 @@
 import { GlobalElems, GlobalState } from './global_state.js';
+import { processInput } from './command_exec.js';
 
-// CLI Timeline update:
+// CLI Timeline update (adds last command executed to the history):
 function updateTimelineCLI(command) {
     GlobalState.CLIHistoryList.push(command); // Adds the new command to the end of the history array
     const lastFourCommands = GlobalState.CLIHistoryList.slice(-4);  // Gets the last 4 elements
@@ -11,18 +12,15 @@ function updateTimelineCLI(command) {
 function submitInputCLI(input) { // => command_exec.js
     if (input != '') { // If not empty input
         updateTimelineCLI(input);
-
-        // Simulating Commands:
         try {
-            GlobalState.Processor.executeCommand(input);  // Outputs drawing logs and executes command
-            GlobalState.ExecutionHistory.undo();  // Should undo the rectangle drawing
-            GlobalState.ExecutionHistory.redo();  // Should redo the rectangle drawing
+            processInput(input);  // Outputs drawing logs and executes commandprocessInput('line');
+            // processInput({x: 0, y: 0});
+            // processInput({x: 10, y: 10});  // Completes the line and triggers drawing.
         } catch (error) {
+            console.log(`err ${error}`);
             console.log(error.message);
         }
-
         input = '';  // Clear the input after the command is entered
-
         return '';
     }
     if (input == '' && GlobalState.CLIHistoryList.slice(-1) != '') { // If empty input and there's history

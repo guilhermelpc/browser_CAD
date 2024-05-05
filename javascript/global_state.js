@@ -7,8 +7,10 @@ export const GlobalState = {
 
     CLIHistoryList: [],
 
-    ExecutionHistory: null, // Defined as a CommandHistory class by main.js
-    Processor: null, // Defined as a Processor class by main.js
+    ExecutionHistory: null, // Defined as a `CommandHistory` class instance by main.js
+    // Processor: null, // Defined as a `Processor` class instance by main.js
+
+    PendingCommand: null,
 }
 
 export const GlobalElems = {

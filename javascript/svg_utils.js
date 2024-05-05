@@ -1,4 +1,5 @@
 import { GlobalElems, GlobalState } from './global_state.js';
+import { processInput } from './command_exec.js';
 
 export function createSvgElement(elementName, attributes, parentElement, innerHTML = null) {
     const element = document.createElementNS("http://www.w3.org/2000/svg", elementName);
@@ -93,13 +94,16 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
         ${GlobalState.ViewBox.width} ${GlobalState.ViewBox.height}`);
 });
 
-// Test click functionality to print the last click coords
+// Click functionality to print the last click coords
 GlobalElems.SvgElement.addEventListener("click", function(event) {
     const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
     const x = svgPoint.x;
     const y = svgPoint.y;
     GlobalElems.CoordsTextElem.textContent = `${parseFloat(x).toFixed(1)}, ${parseFloat(y).toFixed(1)}`;
-    
+    if (GlobalState.PendingCommand) {
+        processInput({x,y});
+    }
+
     clearTimeout(GlobalState.TimeoutHandle);
     GlobalState.TimeoutHandle = setTimeout(() => {
         GlobalElems.CoordsTextElem.textContent = "";
