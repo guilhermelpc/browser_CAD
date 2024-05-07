@@ -35,9 +35,10 @@ function submitInputCLI(input) { // => command_exec.js
 // Esc functionality:
 function handleEsc() {
     GlobalElems.CommandLine.value = '';
-
+    if (GlobalState.PendingCommand) {
+        GlobalState.ExecutionHistory.undo();
+    }
     // Reset command processor from here
-    
 }
 
 // Automatic CLI focus, spacebar handler, esc handler:

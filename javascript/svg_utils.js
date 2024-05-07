@@ -94,16 +94,18 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
         ${GlobalState.ViewBox.width} ${GlobalState.ViewBox.height}`);
 });
 
-// Click functionality to print the last click coords
+// Click functionality
 GlobalElems.SvgElement.addEventListener("click", function(event) {
     const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
     const x = svgPoint.x;
     const y = svgPoint.y;
-    GlobalElems.CoordsTextElem.textContent = `${parseFloat(x).toFixed(1)}, ${parseFloat(y).toFixed(1)}`;
+    // Use coords as input for any pending command:
     if (GlobalState.PendingCommand) {
         processInput({x,y});
     }
 
+    // Test section: print click coordinates on screen:
+    GlobalElems.CoordsTextElem.textContent = `${parseFloat(x).toFixed(1)}, ${parseFloat(y).toFixed(1)}`;
     clearTimeout(GlobalState.TimeoutHandle);
     GlobalState.TimeoutHandle = setTimeout(() => {
         GlobalElems.CoordsTextElem.textContent = "";

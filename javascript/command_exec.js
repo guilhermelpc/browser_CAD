@@ -1,22 +1,6 @@
 import { GlobalElems, GlobalState } from './global_state.js';
 import { getCursorCoords } from './svg_utils.js'
 
-// Command flow for 'line' input:
-// main.js:
-//     GlobalState.ExecutionHistory = new CommandHistory();
-// cli_utils.js:
-//     function submitInputCLI(input) { processInput('line'); }
-// command_exec.js:
-//     function processInput(input) {
-        // if (GlobalState.PendingCommand) {
-        //     GlobalState.PendingCommand.handleInput(input);
-                // PendingCommand is defined by ShapeCommand
-        // } else {
-        //     const command = [...] = new ShapeCommand('line')
-        //     `CommandHistory()`.executeCommand(command); 
-                // `= CommandHistory().executeCommand(ShapeCommand('line'))`
-        // }       
-//     }
 
 class Line {
     constructor() {
@@ -25,29 +9,42 @@ class Line {
         this.isComplete = false;
         this.svgLine = null; // SVG line element
         this.svg = GlobalElems.SvgElement;
-        console.log('line obj initiated');
+        console.log('Line class obj. initiated');
         this.attachMouseMoveHandler();
     }
 
     handleInput(input) {
-        console.log('line hangle input initiated');
-        if (!this.checkInput(input)) { return; }
+        if (!this.checkInput(input)) { return; } // under construction
+        let point = input;
+        if (typeof input === 'string') {
+            point = parseCoords(input);
+            if (!point) {
+                console.error('Invalid coordinate input:', input);
+                return;
+            }
+        }
         if (this.points.length === 0) {
-            this.points.push(input);
+            this.points.push(point);
             this.createLineElement();
-            this.updateLineElement(input);
+            this.updateLineElement(point);
         } else if (this.points.length === 1 && !this.isComplete) {
-            this.points.push(input);
+            this.points.push(point);
             this.isComplete = true;
             this.updateLineElement();
             this.detachMouseMoveHandler();
         }
     }
 
+    checkInput(input) {
+        // under construction
+        return true;
+    }
+
+
     createLineElement() {
         this.svgLine = document.createElementNS("http://www.w3.org/2000/svg", 'line');
         this.svgLine.setAttribute('stroke', 'black');
-        this.svgLine.setAttribute('stroke-width', '2');
+        this.svgLine.setAttribute('stroke-width', '1');
         this.svg.appendChild(this.svgLine);
     }
 
@@ -64,11 +61,6 @@ class Line {
         }
     }
 
-    checkInput(input) {
-        // under construction
-        return true;
-    }
-
     attachMouseMoveHandler() {
         this.mouseMoveHandler = event => {
             const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
@@ -79,15 +71,16 @@ class Line {
         this.svg.addEventListener('mousemove', this.mouseMoveHandler);
     }
 
-
-
     detachMouseMoveHandler() {
         this.svg.removeEventListener('mousemove', this.mouseMoveHandler);
     }
 
-    erase() {
-        this.svgLine.remove();
-        console.log('Line erased');
+    cancel(){
+        if (this.svgLine) {
+            this.svgLine.remove();
+            this.svgLine = null;
+        }
+        console.log('Line canceled');
     }
 }
 
@@ -106,13 +99,21 @@ class ShapeCommand {
         this.shape.handleInput(input);
         if (this.shape.isComplete) {
             GlobalState.PendingCommand = null;  // Resetting the command after completion
+            console.log('Shape complete');
         }
     }
 
     undo() {
-        this.shape.erase();
+        this.shape.cancel();
         console.log(`${this.shape.constructor.name} erased.`);
         GlobalState.PendingCommand = null;
+    }
+
+    cancel() {
+        this.shape.cancel();
+        console.log(`${this.shape.constructor.name} cancelled.`);
+        GlobalState.PendingCommand = null;
+
     }
 }
 
@@ -172,5 +173,24 @@ export function processInput(input) {
         } else {
             console.error('Invalid command');
         }
+    }
+}
+
+function parseCoords(input) { // if error, returns null
+    const parts = input.trim().split(',');
+
+    if (parts.length != 2) { 
+        console.error('Invalid input format: Please enter coordinates in the format "x,y"');
+        return null;
+    }
+
+    const x = parseFloat(parts[0]);
+    const y = parseFloat(parts[1]);
+
+    if (!isNaN(x) && !isNaN(y)) {
+        return { x: x, y: y };
+    } else {
+        console.error('Invalid input: Coordinates must be valid numbers.');
+        return null;
     }
 }
