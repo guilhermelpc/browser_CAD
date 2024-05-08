@@ -13,7 +13,7 @@ function submitInputCLI(input) { // => command_exec.js
     if (input != '') { // If not empty input
         updateTimelineCLI(input);
         try {
-            processInput(input); 
+            processInput(input);
         } catch (error) {
             console.log(`err ${error}`);
             console.log(error.message);
@@ -23,7 +23,9 @@ function submitInputCLI(input) { // => command_exec.js
     }
     if (input == '' && GlobalState.CLIHistoryList.slice(-1) != '') { // If empty input and there's history
         console.log('repeat last command');
-        return GlobalState.CLIHistoryList.slice(-1);
+        // return GlobalState.CLIHistoryList.slice(-1);
+        submitInputCLI(GlobalState.CLIHistoryList.slice(-1));
+        return '';
     }
     if (input == '' && GlobalState.CLIHistoryList.slice(-1) == '') { // If empty input and there's no history
         return '';

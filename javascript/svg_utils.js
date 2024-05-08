@@ -50,8 +50,6 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
     event.preventDefault();  // Prevent the page from scrolling
     const cursorPointPreZoom = getCursorCoords(event, GlobalElems.SvgElement);
 
-    let center = { x: GlobalState.ViewBox.x + GlobalState.ViewBox.width/2, y: GlobalState.ViewBox.y + GlobalState.ViewBox.height/2 };
-
     // Checks for new zoom target:
     if (event.clientX != GlobalState.ZoomPosition.x || event.clientY != GlobalState.ZoomPosition.y){
         // Window cursor position:
@@ -59,7 +57,6 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
         GlobalState.ZoomPosition.y = event.clientY;
         // SVG cursor position:
         GlobalState.TgtZoom = { x: cursorPointPreZoom.x, y: cursorPointPreZoom.y };
-        // SVG Coords target position referenced by screen center:
     }
 
     // Scroll intensity:
@@ -94,7 +91,7 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
         ${GlobalState.ViewBox.width} ${GlobalState.ViewBox.height}`);
 });
 
-// Click functionality
+// Click functionality, processInput for pending commands
 GlobalElems.SvgElement.addEventListener("click", function(event) {
     const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
     const x = svgPoint.x;

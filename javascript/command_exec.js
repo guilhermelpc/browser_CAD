@@ -16,8 +16,10 @@ class ShapeCommand {
     handleInput(input) {
         this.shape.handleInput(input);
         if (this.shape.isComplete) {
+            console.log(`${GlobalState.PendingCommand.shape.type} complete`);
             GlobalState.PendingCommand = null;  // Resetting the command after completion
-            console.log('Shape complete');
+        } else {
+            console.log(`pending command: ${GlobalState.PendingCommand.shape.type}`);
         }
     }
 
@@ -72,7 +74,6 @@ const commandMap = {
 
 export function processInput(input) {
     if (GlobalState.PendingCommand) {
-        console.log(`pending command: ${GlobalState.PendingCommand.shape.type}`);
         GlobalState.PendingCommand.handleInput(input);
     } else {
         if (input in commandMap) {

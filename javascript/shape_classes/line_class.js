@@ -14,7 +14,6 @@ export class Line {
     }
 
     handleInput(input) {
-        if (!this.checkInput(input)) { return; } // under construction
         let point = input;
         if (typeof input === 'string') {
             point = parseCoords(input);
@@ -34,11 +33,6 @@ export class Line {
             this.updateLineElement();
             this.detachMouseMoveHandler();
         }
-    }
-
-    checkInput(input) {
-        // under construction
-        return true;
     }
 
     createLineElement() {
@@ -84,6 +78,7 @@ export class Line {
 
     cancel(){
         if (this.svgLine) {
+            this.detachMouseMoveHandler();
             this.svgLine.remove();
             this.svgLine = null;
         }
