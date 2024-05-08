@@ -6,9 +6,6 @@ import { CommandHistory } from './command_exec.js';
 updateViewBoxAspectRatio(GlobalState.ViewBox, GlobalElems.SvgElement);
 
 GlobalState.ExecutionHistory = new CommandHistory();
-// GlobalState.Processor = new CommandProcessor(GlobalState.ExecutionHistory);
-// console.log(GlobalState.ExecutionHistory);
-
 
 
 // TESTES:

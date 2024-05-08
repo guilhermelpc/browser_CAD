@@ -2,34 +2,35 @@ import { GlobalElems, GlobalState } from './global_state.js';
 import { processInput } from './command_exec.js';
 
 // CLI Timeline update (adds last command executed to the history):
-function updateTimelineCLI(command) {
-    GlobalState.CLIHistoryList.push(command); // Adds the new command to the end of the history array
-    const lastFourCommands = GlobalState.CLIHistoryList.slice(-4);  // Gets the last 4 elements
+export function updateTimelineCLI(cmdString) {
+    GlobalState.CLITimeline.push(cmdString); // Adds the new command to the end of the history array
+
+    const lastFourCommands = GlobalState.CLITimeline.slice(-4);  // Gets the last 4 elements
     GlobalElems.CLIHistory.innerHTML = lastFourCommands.join('<br>'); // Updates the display, newest command is at the bottom
 }
 
 // Handles CLI input after Enter or Spacebar:
-function submitInputCLI(input) { // => command_exec.js
-    if (input != '') { // If not empty input
-        updateTimelineCLI(input);
+function submitInputCLI(inputString) { // => command_exec.js
+    if (inputString != '') { // If not empty input
+        // updateTimelineCLI(inputString);
         try {
-            processInput(input);
+            processInput(inputString);
         } catch (error) {
             console.log(`err ${error}`);
             console.log(error.message);
         }
-        input = '';  // Clear the input after the command is entered
+        inputString = '';  // Clear the input after the command is entered
         return '';
     }
-    if (input == '' && GlobalState.CLIHistoryList.slice(-1) != '') { // If empty input and there's history
+    if (inputString == '' && GlobalState.LastSuccessfulCmd) { // If empty input and there's history
         console.log('repeat last command');
-        // return GlobalState.CLIHistoryList.slice(-1);
-        submitInputCLI(GlobalState.CLIHistoryList.slice(-1)[0]);
+        submitInputCLI(GlobalState.LastSuccessfulCmd);
         return '';
     }
-    if (input == '' && GlobalState.CLIHistoryList.slice(-1) == '') { // If empty input and there's no history
+    if (inputString == '' && !GlobalState.LastSuccessfulCmd) { // If empty input and there's no history
         return '';
     }
+    return '';
 }
 
 // Esc functionality:
@@ -49,6 +50,7 @@ document.addEventListener('keydown', function(event) {
     if (event.key === ' ') {
         event.preventDefault(); // Prevents ' ' to be inserted into CLI
         GlobalElems.CommandLine.value = submitInputCLI(GlobalElems.CommandLine.value);
+
         return;
     }
     if (document.activeElement !== GlobalElems.CommandLine) {

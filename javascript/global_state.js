@@ -3,22 +3,28 @@ export const GlobalState = {
     TgtZoom: { x: 200, y: 200 },
     ZoomPosition: { x: 200, y: 200 },
 
-    TimeoutHandle: 0,
+    CLITimeline: [], // [[a, b],[a, b], ...] where `a` is successful command flag, and b is command text
 
-    CLIHistoryList: [],
+    LastSuccessfulCmd: null,
 
-    ExecutionHistory: null, // Defined as a `CommandHistory` class instance by main.js
+    CLIInputField: [],
 
-    PendingCommand: null,
+    ExecutionHistory: null, // Defined as a `CommandHistory` class instance in main.js
+
+    PendingCommand: null, // Defined by `ShapeCommand` class instance, or similar, in command_exec.js
 
     SelectedShapes: [],
 
-    StrokeWidth: 1,
+    TimeoutHandle: 0,
+
+    // StrokeWidth: 1,
 }
 
 export const GlobalElems = {
     SvgElement: document.getElementById("svgCanvas"),
-    CoordsTextElem: {}, // SVG elem. created in main.js
-    CLIHistory: document.getElementById('commandHistory'),
-    CommandLine: document.getElementById('commandLine'),
+
+    CLIHistory: document.getElementById('cliHistory'),
+    CommandLine: document.getElementById('cliInput'),
+
+    CoordsTextElem: {}, // Test SVG elem. created in main.js
 }

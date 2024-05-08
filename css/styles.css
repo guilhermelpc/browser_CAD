@@ -16,7 +16,7 @@ text {
     pointer-events: none; /* Prevents text from interfering with click events */
 }
 
-#commandHistoryContainer {
+#cliHistoryContainer {
     position: fixed;
     left: 0;
     right: 70%;
@@ -28,7 +28,7 @@ text {
     color: #000000;
 }
 
-#commandLineContainer {
+#cliContainer {
     position: fixed;
     left: 0;
     right: 70%;
@@ -37,12 +37,11 @@ text {
     background: rgba(255, 255, 255, 0);  /* Fully transparent background */
 }
 
-#commandLine {
+#cliInput {
     width: 100%;
     height: 30px;
     border: none;  /* No border */
     font-size: 16px;
     background: transparent;  /* Transparent input field */
     outline: none;  /* Removes the highlight when focused */
-
 }

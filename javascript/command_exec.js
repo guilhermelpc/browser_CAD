@@ -1,6 +1,7 @@
 import { GlobalElems, GlobalState } from './global_state.js';
 import { getCursorCoords } from './svg_utils.js'
 import { Line } from './shape_classes/line_class.js'
+import { updateTimelineCLI } from './cli_utils.js'
 
 class ShapeCommand {
     constructor(shape) { // ex. `shape` is object of Line class
@@ -47,6 +48,7 @@ export class CommandHistory {
         command.execute();
         this.undoStack.push(command);
         this.redoStack = [];
+        // console.log(command.shape.type);
     }
 
     undo() {
@@ -73,13 +75,20 @@ const commandMap = {
 };
 
 export function processInput(input) {
+    if (typeof input === 'string') {
+        input = input.toLowerCase();
+    }
     if (GlobalState.PendingCommand) {
         GlobalState.PendingCommand.handleInput(input);
     } else {
         if (input in commandMap) {
             commandMap[input]();
+            console.log(GlobalState.ExecutionHistory.undoStack.slice(-1));
+            updateTimelineCLI(input)
+            GlobalState.LastSuccessfulCmd = input;
         } else {
-            console.error('Invalid command');
+            console.error('Invalid command:', input);
+            updateTimelineCLI(`Invalid command: '${input}'`)
         }
     }
 }
