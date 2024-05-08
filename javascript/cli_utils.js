@@ -5,7 +5,7 @@ import { processInput } from './command_exec.js';
 function updateTimelineCLI(command) {
     GlobalState.CLIHistoryList.push(command); // Adds the new command to the end of the history array
     const lastFourCommands = GlobalState.CLIHistoryList.slice(-4);  // Gets the last 4 elements
-    GlobalElems.CommandHistory.innerHTML = lastFourCommands.join('<br>'); // Updates the display, newest command is at the bottom
+    GlobalElems.CLIHistory.innerHTML = lastFourCommands.join('<br>'); // Updates the display, newest command is at the bottom
 }
 
 // Handles CLI input after Enter or Spacebar:
@@ -24,7 +24,7 @@ function submitInputCLI(input) { // => command_exec.js
     if (input == '' && GlobalState.CLIHistoryList.slice(-1) != '') { // If empty input and there's history
         console.log('repeat last command');
         // return GlobalState.CLIHistoryList.slice(-1);
-        submitInputCLI(GlobalState.CLIHistoryList.slice(-1));
+        submitInputCLI(GlobalState.CLIHistoryList.slice(-1)[0]);
         return '';
     }
     if (input == '' && GlobalState.CLIHistoryList.slice(-1) == '') { // If empty input and there's no history

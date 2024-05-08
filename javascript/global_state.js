@@ -12,11 +12,13 @@ export const GlobalState = {
     PendingCommand: null,
 
     SelectedShapes: [],
+
+    StrokeWidth: 1,
 }
 
 export const GlobalElems = {
     SvgElement: document.getElementById("svgCanvas"),
     CoordsTextElem: {}, // SVG elem. created in main.js
-    CommandHistory: document.getElementById('commandHistory'),
+    CLIHistory: document.getElementById('commandHistory'),
     CommandLine: document.getElementById('commandLine'),
 }

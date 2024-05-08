@@ -22,7 +22,6 @@ export class Line {
                 return;
             }
         }
-        
         if (this.points.length === 0) {
             this.points.push(point);
             this.updateLineElement(point);
