@@ -1,88 +1,6 @@
 import { GlobalElems, GlobalState } from './global_state.js';
 import { getCursorCoords } from './svg_utils.js'
-
-
-class Line {
-    constructor() {
-        this.type = 'line';
-        this.points = [];
-        this.isComplete = false;
-        this.svgLine = null; // SVG line element
-        this.svg = GlobalElems.SvgElement;
-        console.log('Line class obj. initiated');
-        this.attachMouseMoveHandler();
-    }
-
-    handleInput(input) {
-        if (!this.checkInput(input)) { return; } // under construction
-        let point = input;
-        if (typeof input === 'string') {
-            point = parseCoords(input);
-            if (!point) {
-                console.error('Invalid coordinate input:', input);
-                return;
-            }
-        }
-        if (this.points.length === 0) {
-            this.points.push(point);
-            this.createLineElement();
-            this.updateLineElement(point);
-        } else if (this.points.length === 1 && !this.isComplete) {
-            this.points.push(point);
-            this.isComplete = true;
-            this.updateLineElement();
-            this.detachMouseMoveHandler();
-        }
-    }
-
-    checkInput(input) {
-        // under construction
-        return true;
-    }
-
-
-    createLineElement() {
-        this.svgLine = document.createElementNS("http://www.w3.org/2000/svg", 'line');
-        this.svgLine.setAttribute('stroke', 'black');
-        this.svgLine.setAttribute('stroke-width', '1');
-        this.svg.appendChild(this.svgLine);
-    }
-
-    updateLineElement(cursorPos = null) {
-        if (!this.svgLine) { return; }
-        this.svgLine.setAttribute('x1', this.points[0].x);
-        this.svgLine.setAttribute('y1', this.points[0].y);
-        if (cursorPos) {
-            this.svgLine.setAttribute('x2', cursorPos.x);
-            this.svgLine.setAttribute('y2', cursorPos.y);
-        } else {
-            this.svgLine.setAttribute('x2', this.points[1].x);
-            this.svgLine.setAttribute('y2', this.points[1].y);
-        }
-    }
-
-    attachMouseMoveHandler() {
-        this.mouseMoveHandler = event => {
-            const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
-            const x = svgPoint.x;
-            const y = svgPoint.y;
-            this.updateLineElement({x, y});
-        };
-        this.svg.addEventListener('mousemove', this.mouseMoveHandler);
-    }
-
-    detachMouseMoveHandler() {
-        this.svg.removeEventListener('mousemove', this.mouseMoveHandler);
-    }
-
-    cancel(){
-        if (this.svgLine) {
-            this.svgLine.remove();
-            this.svgLine = null;
-        }
-        console.log('Line canceled');
-    }
-}
+import { Line } from './shape_classes/line_class.js'
 
 class ShapeCommand {
     constructor(shape) { // ex. `shape` is object of Line class
@@ -117,17 +35,6 @@ class ShapeCommand {
     }
 }
 
-class ShapeFactory {
-    static createShape(type) {
-        switch (type) {
-            case 'line':
-                return new Line();
-            default:
-                throw new Error('Unsupported shape type');
-        }
-    }
-}
-
 export class CommandHistory {
     constructor() {
         this.undoStack = [];
@@ -158,8 +65,9 @@ export class CommandHistory {
 }
 
 const commandMap = {
-    'l': () => new ShapeCommand(ShapeFactory.createShape('line')),
-    'line': () => new ShapeCommand(ShapeFactory.createShape('line'))
+    'l': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
+    'line': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
+    'undo': () => GlobalState.ExecutionHistory.undo()
 };
 
 export function processInput(input) {
@@ -168,15 +76,14 @@ export function processInput(input) {
         GlobalState.PendingCommand.handleInput(input);
     } else {
         if (input in commandMap) {
-            const command = commandMap[input]();
-            GlobalState.ExecutionHistory.executeCommand(command); // main.js: GlobalState.ExecutionHistory = new CommandHistory();
+            commandMap[input]();
         } else {
             console.error('Invalid command');
         }
     }
 }
 
-function parseCoords(input) { // if error, returns null
+export function parseCoords(input) { // if error, returns null
     const parts = input.trim().split(',');
 
     if (parts.length != 2) { 

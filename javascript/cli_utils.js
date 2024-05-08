@@ -13,9 +13,7 @@ function submitInputCLI(input) { // => command_exec.js
     if (input != '') { // If not empty input
         updateTimelineCLI(input);
         try {
-            processInput(input);  // Outputs drawing logs and executes commandprocessInput('line');
-            // processInput({x: 0, y: 0});
-            // processInput({x: 10, y: 10});  // Completes the line and triggers drawing.
+            processInput(input); 
         } catch (error) {
             console.log(`err ${error}`);
             console.log(error.message);
