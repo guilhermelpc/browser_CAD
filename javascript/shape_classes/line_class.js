@@ -1,44 +1,53 @@
 import { GlobalElems, GlobalState } from '../global_state.js';
 import { getCursorCoords } from '../svg_utils.js';
 import { parseCoords } from '../command_exec.js';
+import { updateTimelineCLI } from '../cli_utils.js';
 
 export class Line {
+    static lastId = 0;
+
     constructor() {
         this.type = 'line';
+        this.id = `${this.type}${++Line.lastId}`
         this.points = [];
         this.isComplete = false;
         this.svgLine = null; // SVG line element
         this.svg = GlobalElems.SvgElement;
-        console.log('Line class obj. initiated');
+        console.log('new Line class obj., id:', this.id);
         this.createLineElement();
+    }
+
+    createLineElement() {
+        if (!this.svgLine) {
+            this.svgLine = document.createElementNS("http://www.w3.org/2000/svg", 'line');
+            this.svgLine.setAttribute('stroke', 'black');
+            this.svgLine.setAttribute('stroke-width', '1');
+            this.svg.appendChild(this.svgLine);
+        } else {
+            this.svg.appendChild(this.svgLine);
+        }
     }
 
     handleInput(input) {
         let point = input;
         if (typeof input === 'string') {
-            point = parseCoords(input);
+            point = parseCoords(input); // parseCoords(input) returns null for invalid input
             if (!point) {
                 console.error('Invalid coordinate input:', input);
+                updateTimelineCLI(`Invalid line coordinate input: '${input}'`);
                 return;
             }
         }
-        if (this.points.length === 0) {
-            this.points.push(point);
+        this.points.push(point); // point: object
+
+        if (this.points.length === 1) { // points: list of objects
             this.updateLineElement(point);
             this.attachMouseMoveHandler();
-        } else if (this.points.length === 1 && !this.isComplete) {
-            this.points.push(point);
+        } else if (this.points.length === 2 && !this.isComplete) {
             this.isComplete = true;
             this.updateLineElement();
             this.detachMouseMoveHandler();
-        }
-    }
-
-    createLineElement() {
-        this.svgLine = document.createElementNS("http://www.w3.org/2000/svg", 'line');
-        this.svgLine.setAttribute('stroke', 'black');
-        this.svgLine.setAttribute('stroke-width', '1');
-        this.svg.appendChild(this.svgLine);
+        } 
     }
 
     updateLineElement(cursorPos = null) {
@@ -52,6 +61,29 @@ export class Line {
             this.svgLine.setAttribute('x2', this.points[1].x);
             this.svgLine.setAttribute('y2', this.points[1].y);
         }
+    }
+
+    saveState() {
+        return { 
+            points: this.points.slice(),
+            isComplete: this.isComplete
+        };
+    }
+
+    restoreState(state) {
+        this.createLineElement();
+        console.log(`restoring ${this.points}`)
+        this.points = state.points;
+        this.updateLineElement();
+        this.isComplete = state.isComplete;
+    }
+
+    cancel(){
+        if (this.svgLine) {
+            this.detachMouseMoveHandler();
+            this.svgLine.remove();
+        }
+        console.log('Line canceled');
     }
 
     attachMouseMoveHandler() {
@@ -68,19 +100,10 @@ export class Line {
         this.svg.removeEventListener('mousemove', this.mouseMoveHandler);
     }
 
-    attachSelectHandler() {
+    attachSelectHandler() { // Called by ShapeCommand class instance
         this.svgLine.addEventListener('click', () => {
-            selectedShape = this;
-
+            GlobalState.SelectedShapes.push(this);
+            console.log('Selected shapes: ', GlobalState.SelectedShapes);
         });
-    }
-
-    cancel(){
-        if (this.svgLine) {
-            this.detachMouseMoveHandler();
-            this.svgLine.remove();
-            this.svgLine = null;
-        }
-        console.log('Line canceled');
     }
 }

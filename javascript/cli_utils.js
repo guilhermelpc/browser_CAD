@@ -1,7 +1,7 @@
 import { GlobalElems, GlobalState } from './global_state.js';
 import { processInput } from './command_exec.js';
 
-// CLI Timeline update (adds last command executed to the history):
+// CLI Timeline update - adds its argument to the CLI's timeline:
 export function updateTimelineCLI(cmdString) {
     GlobalState.CLITimeline.push(cmdString); // Adds the new command to the end of the history array
 
@@ -12,7 +12,6 @@ export function updateTimelineCLI(cmdString) {
 // Handles CLI input after Enter or Spacebar:
 function submitInputCLI(inputString) { // => command_exec.js
     if (inputString != '') { // If not empty input
-        // updateTimelineCLI(inputString);
         try {
             processInput(inputString);
         } catch (error) {
@@ -50,12 +49,23 @@ document.addEventListener('keydown', function(event) {
     if (event.key === ' ') {
         event.preventDefault(); // Prevents ' ' to be inserted into CLI
         GlobalElems.CommandLine.value = submitInputCLI(GlobalElems.CommandLine.value);
-
         return;
     }
     if (document.activeElement !== GlobalElems.CommandLine) {
         GlobalElems.CommandLine.focus();
     }
+
+    const isUndo = (event.key === 'z' && (event.ctrlKey || event.metaKey) && !event.shiftKey);
+    const isRedo = (event.key === 'y' && (event.ctrlKey || event.metaKey)) || (event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey);
+
+    if (event.key === 'z' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
+        GlobalState.ExecutionHistory.undo();
+        event.preventDefault(); // Prevent the default browser action
+    } else if ((event.key === 'y' && (event.ctrlKey || event.metaKey)) || (event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey)) {
+        GlobalState.ExecutionHistory.redo();
+        event.preventDefault(); // Prevent the default browser action
+    }
+
 });
 
 // Handles Enter Key:
@@ -65,3 +75,12 @@ GlobalElems.CommandLine.addEventListener('keypress', function(event) {
         return;
     }
 });
+
+// document.addEventListener('keydown', function(event) {
+//     if (event.key === 'z' && event.ctrlKey) {
+//         GlobalState.ExecutionHistory.undo();
+//     }
+//     if (event.key === 'y' && event.ctrlKey) {
+//         GlobalState.ExecutionHistory.redo();
+//     }
+// });

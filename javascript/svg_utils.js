@@ -104,7 +104,5 @@ GlobalElems.SvgElement.addEventListener("click", function(event) {
     // Test section: print click coordinates on screen:
     GlobalElems.CoordsTextElem.textContent = `${parseFloat(x).toFixed(1)}, ${parseFloat(y).toFixed(1)}`;
     clearTimeout(GlobalState.TimeoutHandle);
-    GlobalState.TimeoutHandle = setTimeout(() => {
-        GlobalElems.CoordsTextElem.textContent = "";
-    }, 2000);
+    GlobalState.TimeoutHandle = setTimeout(() => {GlobalElems.CoordsTextElem.textContent = "";}, 2000);
 });

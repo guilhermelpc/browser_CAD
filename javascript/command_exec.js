@@ -1,23 +1,25 @@
-import { GlobalElems, GlobalState } from './global_state.js';
-import { getCursorCoords } from './svg_utils.js'
-import { Line } from './shape_classes/line_class.js'
-import { updateTimelineCLI } from './cli_utils.js'
+import { GlobalState } from './global_state.js';
+import { Line } from './shape_classes/line_class.js';
+import { updateTimelineCLI } from './cli_utils.js';
 
 class ShapeCommand {
     constructor(shape) { // ex. `shape` is object of Line class
-        // super();
         this.shape = shape;
+        this.memento = null;
     }
 
     execute() {
-        GlobalState.PendingCommand = this;
-        console.log(`Shape creation started for ${this.shape.constructor.name}.`);
+        if (!this.memento) {
+            GlobalState.PendingCommand = this;
+            console.log(`Shape creation started for ${this.shape.constructor.name}.`);
+        }
     }
 
     handleInput(input) {
         this.shape.handleInput(input);
         if (this.shape.isComplete) {
             console.log(`${GlobalState.PendingCommand.shape.type} complete`);
+            this.shape.attachSelectHandler();
             GlobalState.PendingCommand = null;  // Resetting the command after completion
         } else {
             console.log(`pending command: ${GlobalState.PendingCommand.shape.type}`);
@@ -25,16 +27,21 @@ class ShapeCommand {
     }
 
     undo() {
+        this.memento = this.shape.saveState();
         this.shape.cancel();
         console.log(`${this.shape.constructor.name} erased.`);
         GlobalState.PendingCommand = null;
+    }
+
+    redo() {
+        this.shape.restoreState(this.memento);
+        console.log(`${this.shape.constructor.name} recreated.`);
     }
 
     cancel() {
         this.shape.cancel();
         console.log(`${this.shape.constructor.name} cancelled.`);
         GlobalState.PendingCommand = null;
-
     }
 }
 
@@ -48,7 +55,6 @@ export class CommandHistory {
         command.execute();
         this.undoStack.push(command);
         this.redoStack = [];
-        // console.log(command.shape.type);
     }
 
     undo() {
@@ -62,7 +68,7 @@ export class CommandHistory {
     redo() {
         const command = this.redoStack.pop();
         if (command) {
-            command.execute();
+            command.redo();
             this.undoStack.push(command);
         }
     }
@@ -71,8 +77,9 @@ export class CommandHistory {
 const commandMap = {
     'l': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
     'line': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
-    'undo': () => GlobalState.ExecutionHistory.undo()
-};
+    'undo': () => GlobalState.ExecutionHistory.undo(),
+    'redo': () => GlobalState.ExecutionHistory.redo(),
+}
 
 export function processInput(input) {
     if (typeof input === 'string') {
@@ -82,13 +89,12 @@ export function processInput(input) {
         GlobalState.PendingCommand.handleInput(input);
     } else {
         if (input in commandMap) {
+            GlobalState.LastSuccessfulCmd = input; // Memory for repeating commands in CLI
+            updateTimelineCLI(input);
             commandMap[input]();
-            console.log(GlobalState.ExecutionHistory.undoStack.slice(-1));
-            updateTimelineCLI(input)
-            GlobalState.LastSuccessfulCmd = input;
         } else {
             console.error('Invalid command:', input);
-            updateTimelineCLI(`Invalid command: '${input}'`)
+            updateTimelineCLI(`Invalid command: '${input}'`);
         }
     }
 }
