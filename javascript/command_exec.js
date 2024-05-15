@@ -19,7 +19,6 @@ class ShapeCommand {
         this.shape.handleInput(input);
         if (this.shape.isComplete) {
             console.log(`${GlobalState.PendingCommand.shape.type} complete`);
-            this.shape.attachSelectHandler();
             GlobalState.PendingCommand = null;  // Resetting the command after completion
         } else {
             console.log(`pending command: ${GlobalState.PendingCommand.shape.type}`);
@@ -34,8 +33,10 @@ class ShapeCommand {
     }
 
     redo() {
-        this.shape.restoreState(this.memento);
-        console.log(`${this.shape.constructor.name} recreated.`);
+        if (this.memento.isComplete) {
+            this.shape.restoreState(this.memento);
+            console.log(`${this.shape.constructor.name} recreated.`);
+        }
     }
 
     cancel() {
@@ -57,11 +58,13 @@ export class CommandHistory {
         this.redoStack = [];
     }
 
-    undo() {
+    undo() { // Also called by 'Escape' key (cancel pending command)
         const command = this.undoStack.pop();
         if (command) {
+            if (!GlobalState.PendingCommand) {
+                this.redoStack.push(command);
+            }
             command.undo();
-            this.redoStack.push(command);
         }
     }
 
@@ -77,8 +80,14 @@ export class CommandHistory {
 const commandMap = {
     'l': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
     'line': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
-    'undo': () => GlobalState.ExecutionHistory.undo(),
+    'printstate': () => {
+        console.log('Shape Map:', GlobalState.ShapeMap); 
+        console.log(`Undo stack: ${GlobalState.ExecutionHistory.undoStack}`);
+        console.log(`Redo stack: ${GlobalState.ExecutionHistory.redoStack}`);
+        
+    },
     'redo': () => GlobalState.ExecutionHistory.redo(),
+    'undo': () => GlobalState.ExecutionHistory.undo(),
 }
 
 export function processInput(input) {

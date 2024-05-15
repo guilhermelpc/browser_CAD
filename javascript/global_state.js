@@ -15,7 +15,9 @@ export const GlobalState = {
     // Misc.
     TimeoutHandle: 0,
 
-    ActiveLayer: null,
+    Layers: null,
+
+    ShapeMap: new Map(),
 }
 
 export const GlobalElems = {

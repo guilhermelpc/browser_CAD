@@ -16,4 +16,6 @@ if (window.location.port.includes('5500')) {
     // Test coords text:
     GlobalElems.CoordsTextElem = createSvgElement("text", {x:GlobalState.ViewBox.width/2,y:GlobalState.ViewBox.height/1.1, "text-anchor":"middle"}, GlobalElems.SvgElement);
     GlobalElems.CoordsTextElem.textContent = "";
+
+    // console.log(GlobalState.ShapeMap);
 }

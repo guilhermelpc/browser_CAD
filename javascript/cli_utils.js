@@ -75,12 +75,3 @@ GlobalElems.CommandLine.addEventListener('keypress', function(event) {
         return;
     }
 });
-
-// document.addEventListener('keydown', function(event) {
-//     if (event.key === 'z' && event.ctrlKey) {
-//         GlobalState.ExecutionHistory.undo();
-//     }
-//     if (event.key === 'y' && event.ctrlKey) {
-//         GlobalState.ExecutionHistory.redo();
-//     }
-// });

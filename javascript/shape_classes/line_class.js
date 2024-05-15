@@ -15,6 +15,7 @@ export class Line {
         this.svg = GlobalElems.SvgElement;
         console.log('new Line class obj., id:', this.id);
         this.createLineElement();
+        GlobalState.ShapeMap.set(this.id, this);
     }
 
     createLineElement() {
@@ -44,9 +45,7 @@ export class Line {
             this.updateLineElement(point);
             this.attachMouseMoveHandler();
         } else if (this.points.length === 2 && !this.isComplete) {
-            this.isComplete = true;
-            this.updateLineElement();
-            this.detachMouseMoveHandler();
+            this.consolidateShape();
         } 
     }
 
@@ -63,14 +62,21 @@ export class Line {
         }
     }
 
-    saveState() {
+    consolidateShape() {
+        this.updateLineElement();
+        this.isComplete = true;
+        this.detachMouseMoveHandler();
+        this.attachSelectHandler();
+    }
+
+    saveState() { // Called only when 'undo' is executed
         return { 
             points: this.points.slice(),
             isComplete: this.isComplete
         };
     }
 
-    restoreState(state) {
+    restoreState(state) { // Called by 'redo'
         this.createLineElement();
         console.log(`restoring ${this.points}`)
         this.points = state.points;
@@ -78,12 +84,12 @@ export class Line {
         this.isComplete = state.isComplete;
     }
 
-    cancel(){
+    cancel(){ // Cancel and/or deletes
         if (this.svgLine) {
             this.detachMouseMoveHandler();
             this.svgLine.remove();
         }
-        console.log('Line canceled');
+        GlobalState.ShapeMap.delete(this.id);
     }
 
     attachMouseMoveHandler() {
@@ -100,7 +106,7 @@ export class Line {
         this.svg.removeEventListener('mousemove', this.mouseMoveHandler);
     }
 
-    attachSelectHandler() { // Called by ShapeCommand class instance
+    attachSelectHandler() {
         this.svgLine.addEventListener('click', () => {
             GlobalState.SelectedShapes.push(this);
             console.log('Selected shapes: ', GlobalState.SelectedShapes);
