@@ -32,12 +32,14 @@ export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
     // Decide whether to match the width or the height to the window
     if (GlobalState.AspectRatio > 1) {
         // Landscape orientation
-        height = viewBoxGlobal.height;  // Arbitrary unit; you can set this based on your needs
+        height = viewBoxGlobal.height;  // Arbitrary unit
         width = viewBoxGlobal.height * GlobalState.AspectRatio;
+        GlobalState.LineWidthDisplay = GlobalState.ViewBox.width / 500;
     } else {
         // Portrait orientation
         width = viewBoxGlobal.width;  // Same arbitrary unit as above
         height = width / GlobalState.AspectRatio;
+        GlobalState.LineWidthDisplay = GlobalState.ViewBox.height / 500;
     }
     viewBoxGlobal.width = width;
     viewBoxGlobal.height = height;
@@ -90,7 +92,11 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
         ${GlobalState.ViewBox.width} ${GlobalState.ViewBox.height}`);
 
     // Update stroke width:
-    GlobalState.LineWidthDisplay = GlobalState.ViewBox.width / 500;
+    if (GlobalState.AspectRatio > 1) {
+        GlobalState.LineWidthDisplay = GlobalState.ViewBox.width / 500;
+    } else {
+        GlobalState.LineWidthDisplay = GlobalState.ViewBox.height / 500;
+    }
     GlobalState.ShapeMap.forEach(shape => { shape.updateDisplay(); });
 
 });
