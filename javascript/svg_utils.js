@@ -21,23 +21,23 @@ export function getCursorCoords(evt, svg) {
     var pt = svg.createSVGPoint();
     pt.x = evt.clientX;
     pt.y = evt.clientY;
-    // console.log(pt.matrixTransform(svg.getScreenCTM().inverse()));
-    return pt.matrixTransform(svg.getScreenCTM().inverse());
+
+    return pt.matrixTransform(svg.getScreenCTM().inverse()); // Transforms window coords to svg coords
 }
 
-// Executed when the main code starts:
+// Executed once when main.js starts:
 export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
-    const aspectRatio = window.innerWidth / window.innerHeight;
+    GlobalState.AspectRatio = window.innerWidth / window.innerHeight;
     let width, height;
     // Decide whether to match the width or the height to the window
-    if (aspectRatio > 1) {
+    if (GlobalState.AspectRatio > 1) {
         // Landscape orientation
         height = viewBoxGlobal.height;  // Arbitrary unit; you can set this based on your needs
-        width = viewBoxGlobal.height * aspectRatio;
+        width = viewBoxGlobal.height * GlobalState.AspectRatio;
     } else {
         // Portrait orientation
         width = viewBoxGlobal.width;  // Same arbitrary unit as above
-        height = width / aspectRatio;
+        height = width / GlobalState.AspectRatio;
     }
     viewBoxGlobal.width = width;
     viewBoxGlobal.height = height;
@@ -80,7 +80,6 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
         newY = GlobalState.TgtZoom.y - (GlobalState.TgtZoom.y - GlobalState.ViewBox.y) * (dynamScaleFactor);
     }
 
-    // console.log(zoomTrgtB)
     GlobalState.ViewBox.x = newX;
     GlobalState.ViewBox.y = newY;
     GlobalState.ViewBox.width = newWidth;
@@ -89,6 +88,11 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
     // Update the SVG's viewBox attribute to apply the zoom
     GlobalElems.SvgElement.setAttribute('viewBox', `${GlobalState.ViewBox.x} ${GlobalState.ViewBox.y} 
         ${GlobalState.ViewBox.width} ${GlobalState.ViewBox.height}`);
+
+    // Update stroke width:
+    GlobalState.LineWidthDisplay = GlobalState.ViewBox.width / 500;
+    GlobalState.ShapeMap.forEach(shape => { shape.updateDisplay(); });
+
 });
 
 // Click functionality, processInput for pending commands
@@ -99,6 +103,8 @@ GlobalElems.SvgElement.addEventListener("click", function(event) {
     // Use coords as input for any pending command:
     if (GlobalState.PendingCommand) {
         processInput({x,y});
+    } else {
+        returnDistancesToShapes({x,y});
     }
 
     // Test section: print click coordinates on screen:
@@ -106,3 +112,11 @@ GlobalElems.SvgElement.addEventListener("click", function(event) {
     clearTimeout(GlobalState.TimeoutHandle);
     GlobalState.TimeoutHandle = setTimeout(() => {GlobalElems.CoordsTextElem.textContent = "";}, 2000);
 });
+
+function returnDistancesToShapes(coords) {
+    let dists = [];
+    // GlobalState.ShapeMap.forEach(shape => console.log(shape.getClickDistance(coords)));
+    GlobalState.ShapeMap.forEach(shape => dists.push({id: shape.id, dist: shape.getClickDistance(coords)}));
+    console.log(dists);
+
+}

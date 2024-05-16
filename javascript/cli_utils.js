@@ -38,7 +38,7 @@ function handleEsc() {
     if (GlobalState.PendingCommand) {
         GlobalState.ExecutionHistory.undo();
     }
-    // Reset command processor from here
+    unselectShapes();
 }
 
 // Automatic CLI focus, spacebar handler, esc handler:
@@ -59,13 +59,14 @@ document.addEventListener('keydown', function(event) {
     const isRedo = (event.key === 'y' && (event.ctrlKey || event.metaKey)) || (event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey);
 
     if (event.key === 'z' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
+        unselectShapes();
         GlobalState.ExecutionHistory.undo();
         event.preventDefault(); // Prevent the default browser action
     } else if ((event.key === 'y' && (event.ctrlKey || event.metaKey)) || (event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey)) {
+        unselectShapes();
         GlobalState.ExecutionHistory.redo();
         event.preventDefault(); // Prevent the default browser action
     }
-
 });
 
 // Handles Enter Key:
@@ -75,3 +76,7 @@ GlobalElems.CommandLine.addEventListener('keypress', function(event) {
         return;
     }
 });
+
+function unselectShapes() {
+    GlobalState.SelectedShapes = [];
+}

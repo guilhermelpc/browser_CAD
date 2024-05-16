@@ -1,8 +1,9 @@
 export const GlobalState = {
     // SVG:
-    ViewBox: { x: 0, y: 0, width: 400, height: 400 },
-    TgtZoom: { x: 200, y: 200 },
-    ZoomPosition: { x: 200, y: 200 },
+    AspectRatio: 1, // modified by svg_utils.js
+    ViewBox: { x: 0, y: 0, width: 400, height: 400 }, // modified by svg_utils.js
+    TgtZoom: { x: 200, y: 200 }, // In SVG coordinates, modified by svg_utils.js
+    ZoomPosition: { x: 200, y: 200 }, // In window coordinates, modified by svg_utils.js
     // CLI:
     CLITimeline: [], 
     CLIInputField: [],
@@ -11,13 +12,14 @@ export const GlobalState = {
     ExecutionHistory: null, // Defined as a `CommandHistory` class instance in main.js
     PendingCommand: null, // Defined by `ShapeCommand` class instance, or similar, in command_exec.js
     // Working state:
+    ShapeMap: new Map(),
     SelectedShapes: [],
     // Misc.
     TimeoutHandle: 0,
 
     Layers: null,
 
-    ShapeMap: new Map(),
+    LineWidthDisplay: 2,
 }
 
 export const GlobalElems = {
