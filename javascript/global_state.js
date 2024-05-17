@@ -2,8 +2,8 @@ export const GlobalState = {
     // SVG:
     AspectRatio: 1, // modified by svg_utils.js
     ViewBox: { x: 0, y: 0, width: 400, height: 400 }, // modified by svg_utils.js
-    TgtZoom: { x: 200, y: 200 }, // In SVG coordinates, modified by svg_utils.js
-    ZoomPosition: { x: 200, y: 200 }, // In window coordinates, modified by svg_utils.js
+    ZoomCoords: { x: 200, y: 200 }, // In SVG coordinates, modified by svg_utils.js
+    SelectionCoords: null,
     // CLI:
     CLITimeline: [], 
     CLIInputField: [],
