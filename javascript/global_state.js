@@ -9,17 +9,16 @@ export const GlobalState = {
     CLIInputField: [],
     LastSuccessfulCmd: null,
     // Singleton class instances:
-    ExecutionHistory: null, // Defined as a `CommandHistory` class instance in main.js
-    PendingCommand: null, // Defined by `ShapeCommand` class instance, or similar, in command_exec.js
+    ExecutionHistory: null, // Defined as a `CommandHistory` class instance by main.js
+    PendingCommand: null, // Defined by `ShapeCommand` class instance, or similar, by command_exec.js
     // Working state:
     ShapeMap: new Map(),
     SelectedShapes: [],
+    Layers: null,
+    // Styles
+    LineWidthDisplay: 2, // Updated by svg_utils.js (by updateViewBoxAspectRatio() and zoom functionality)
     // Misc.
     TimeoutHandle: 0,
-
-    Layers: null,
-
-    LineWidthDisplay: 2,
 }
 
 export const GlobalElems = {
@@ -28,6 +27,8 @@ export const GlobalElems = {
     // CLI HTML Elements:
     CLIHistory: document.getElementById('cliHistory'),
     CommandLine: document.getElementById('cliInput'),
-    // TEST TEXT:
-    CoordsTextElem: {}, // Test SVG elem. created in main.js
+    CliPrefix: document.getElementById('commandPrefix'),
+
+    // TEST:
+    CoordsTextElem: {}, // Text SVG elem. created in main.js
 }

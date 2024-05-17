@@ -7,7 +7,6 @@ class ToolCommand {
         this.tool = tool;
         this.memento = null;
     }
-
     execute() {}
     handleInput() {}
     cancel() {}
@@ -16,9 +15,9 @@ class ToolCommand {
 }
 
 class ShapeCommand {
-    constructor(shape) { // ex. `shape` is object of Line class
+    constructor(shape) { // `shape` is object of a shape class, e.g. `new Line()`
         this.shape = shape;
-        this.memento = null;
+        this.memento = null; // Properties of shape, so it can be reconstructed with `redo`
     }
 
     execute() {
@@ -74,7 +73,7 @@ export class CommandHistory {
             if (!GlobalState.PendingCommand) { // If there's no pending command
                 this.redoStack.push(command);
                 command.undo();
-            } else { // if there's pending command
+            } else { // if pending command, doesn't add it to redo stack
                 command.cancel();
             }
         }
@@ -132,7 +131,7 @@ export function parseCoords(input) { // if error, returns null
     const y = parseFloat(parts[1]);
 
     if (!isNaN(x) && !isNaN(y)) {
-        return { x: x, y: y };
+        return { x: x, y: - y }; // invert y coord
     } else {
         console.error('Invalid input: Coordinates must be valid numbers.');
         return null;

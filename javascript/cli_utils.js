@@ -4,13 +4,12 @@ import { processInput } from './command_exec.js';
 // CLI Timeline update - adds its argument to the CLI's timeline:
 export function updateTimelineCLI(cmdString) {
     GlobalState.CLITimeline.push(cmdString); // Adds the new command to the end of the history array
-
-    const lastFourCommands = GlobalState.CLITimeline.slice(-4);  // Gets the last 4 elements
-    GlobalElems.CLIHistory.innerHTML = lastFourCommands.join('<br>'); // Updates the display, newest command is at the bottom
+    GlobalElems.CLIHistory.innerHTML = GlobalState.CLITimeline.slice(-4).join('<br>'); // Updates CLI history, newest command at the bottom
 }
 
 // Handles CLI input after Enter or Spacebar:
 function submitInputCLI(inputString) { // => command_exec.js
+    GlobalElems.CommandLine.value = '';
     if (inputString != '') { // If not empty input
         try {
             processInput(inputString);
@@ -18,23 +17,23 @@ function submitInputCLI(inputString) { // => command_exec.js
             console.log(`err ${error}`);
             console.log(error.message);
         }
-        inputString = '';  // Clear the input after the command is entered
-        return '';
+        return;  // Clear the input after the command is entered
     }
-    if (inputString == '' && GlobalState.LastSuccessfulCmd) { // If empty input and there's history
+    if (inputString == '' && GlobalState.LastSuccessfulCmd) { // If empty input and there's command history
         console.log('repeat last command');
         submitInputCLI(GlobalState.LastSuccessfulCmd);
-        return '';
+        return;
     }
     if (inputString == '' && !GlobalState.LastSuccessfulCmd) { // If empty input and there's no history
-        return '';
+        return;
     }
-    return '';
+    return;
 }
 
 // Esc functionality:
 function handleEsc() {
     GlobalElems.CommandLine.value = '';
+    GlobalElems.CliPrefix.value = '';
     if (GlobalState.PendingCommand) {
         GlobalState.ExecutionHistory.undo();
     }
@@ -48,7 +47,7 @@ document.addEventListener('keydown', function(event) {
     }
     if (event.key === ' ') {
         event.preventDefault(); // Prevents ' ' to be inserted into CLI
-        GlobalElems.CommandLine.value = submitInputCLI(GlobalElems.CommandLine.value);
+        submitInputCLI(GlobalElems.CommandLine.value);
         return;
     }
     if (document.activeElement !== GlobalElems.CommandLine) {
@@ -72,8 +71,7 @@ document.addEventListener('keydown', function(event) {
 // Handles Enter Key:
 GlobalElems.CommandLine.addEventListener('keypress', function(event) {
     if (event.key === 'Enter') {
-        this.value = submitInputCLI(this.value);  // Clear the input after the command is entered or fetch last command
-        return;
+        submitInputCLI(this.value);  // Clear the input after the command is entered or fetch last command
     }
 });
 

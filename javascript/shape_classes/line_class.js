@@ -73,9 +73,9 @@ export class Line {
         this.updateLineElement();
         this.isComplete = true;
         this.detachMouseMoveHandler();
-        // this.attachSelectHandler();
         GlobalState.ShapeMap.set(this.id, this);
         this.updateDisplay();
+        console.log(`line consolidated`);
     }
 
     saveState() { // Called only when 'undo' is executed

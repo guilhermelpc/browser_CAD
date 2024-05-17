@@ -102,7 +102,7 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
 });
 
 // Click functionality, processInput for pending commands
-GlobalElems.SvgElement.addEventListener("click", function(event) {
+GlobalElems.SvgElement.addEventListener("mousedown", function(event) {
     const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
     const x = svgPoint.x;
     const y = svgPoint.y;

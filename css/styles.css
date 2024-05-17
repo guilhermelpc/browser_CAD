@@ -35,6 +35,11 @@ text {
     bottom: 0;
     padding: 10px;
     background: rgba(255, 255, 255, 0);  /* Fully transparent background */
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
 }
 
 #cliInput {
