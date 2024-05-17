@@ -9,12 +9,14 @@
 <body>
     <svg id="svgCanvas"></svg>
     
-    <div id="cliHistoryContainer">
-        <div id="cliHistory"></div>
-    </div>
-    <div id="cliContainer">
-        <div id="commandPrefix"></div>
-        <input type="text" id="cliInput" placeholder="Enter commands...">
+    <div id="mainCLIContainer">
+        <div id="cliHistoryContainer">
+            <div id="cliHistory"></div>
+        </div>
+        <div id="cliContainer">
+            <div id="commandPrefix"></div>
+            <input type="text" id="cliInput" placeholder="Enter commands..." autocomplete="off">
+        </div>
     </div>
 
     <script type="module" src="javascript/main.js"></script>

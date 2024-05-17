@@ -1,6 +1,6 @@
 import { GlobalState } from './global_state.js';
 import { Line } from './shape_classes/line_class.js';
-import { updateTimelineCLI } from './cli_utils.js';
+import { updateTimelineCLI, capitalizeFirstLetter } from './cli_utils.js';
 
 class ToolCommand {
     constructor(tool) {
@@ -101,7 +101,7 @@ const commandMap = {
     'undo': () => GlobalState.ExecutionHistory.undo(),
 }
 
-export function processInput(input) {
+export function processInput(input, repeat=false) {
     if (typeof input === 'string') {
         input = input.toLowerCase();
     }
@@ -110,7 +110,7 @@ export function processInput(input) {
     } else {
         if (input in commandMap) {
             GlobalState.LastSuccessfulCmd = input; // Memory for repeating commands in CLI
-            updateTimelineCLI(input);
+            repeat ? updateTimelineCLI(`Repeating last command: '${capitalizeFirstLetter(input)}'`) : updateTimelineCLI(`'${capitalizeFirstLetter(input)}'`);
             commandMap[input]();
         } else {
             console.error('Invalid command:', input);

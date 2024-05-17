@@ -5,7 +5,7 @@ html, body {
     background: #555555;
 }
 svg {
-    display: block; /* removes the bottom margin/gap */
+    display: block; /* removes bottom margin/gap */
     background: #afafaf;
     width: 100vw;
     height: 100vh;
@@ -16,37 +16,51 @@ text {
     pointer-events: none; /* Prevents text from interfering with click events */
 }
 
-#cliHistoryContainer {
+#mainCLIContainer {
     position: fixed;
     left: 0;
-    right: 70%;
-    bottom: 50px; /* Position it just above the command line */
+    bottom: 0;
+    width: auto; /* Auto adjusts based on content */
+    min-width: 20%;
+    display: flex;
+    flex-direction: column; 
+    align-items: stretch; /* children take the full width */
+}
+
+#cliHistoryContainer {
     padding: 5px;
-    background: rgba(255, 255, 255, 0.5);  /* Slightly opaque background for visibility */
+    background: rgba(255, 255, 255, 0.1);  /* Slightly opaque background for visibility */
     font-size: 14px;
     font-family: Arial, sans-serif;
     color: #000000;
+    flex-grow: 1; /* Allow it to grow */
+    overflow-y: auto; /* Allow scrolling if content overflows */
 }
 
 #cliContainer {
-    position: fixed;
-    left: 0;
-    right: 70%;
-    bottom: 0;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0);  /* Fully transparent background */
+    padding: 5px;
+    background: rgba(255, 255, 255, 0.4);  /* Fully transparent background */
     font-size: 16px;
     font-family: Arial, sans-serif;
-    font-size: 16px;
     display: flex;
     align-items: center;
+    white-space: nowrap;
+}
+
+#commandPrefix {
+    flex-shrink: 0; /* Prevent the prefix from shrinking */
+    white-space: nowrap; /* Prevent wrapping of the prefix text */
+    overflow: hidden; /* Hide any overflow content */
+    text-overflow: ellipsis; /* Optionally add ellipsis for overflow text */
 }
 
 #cliInput {
-    width: 100%;
+    flex-grow: 1; /* Allow the input to take the remaining space */
+    min-width: 0; /* Ensure the input can shrink properly */
     height: 30px;
     border: none;  /* No border */
     font-size: 16px;
     background: transparent;  /* Transparent input field */
     outline: none;  /* Removes the highlight when focused */
 }
+

@@ -47,19 +47,28 @@ export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
         ${viewBoxGlobal.width} ${viewBoxGlobal.height}`);
 }
 
+function returnDistancesToShapes(coords) {
+    let dists = [];
+    // GlobalState.ShapeMap.forEach(shape => console.log(shape.getClickDistance(coords)));
+    GlobalState.ShapeMap.forEach(shape => dists.push({id: shape.id, dist: shape.getClickDistance(coords)}));
+    console.log(dists);
+
+}
+
 // Zoom functionality:
 GlobalElems.SvgElement.addEventListener('wheel', function(event) {
     event.preventDefault();  // Prevent the page from scrolling
     const cursorPointPreZoom = getCursorCoords(event, GlobalElems.SvgElement);
+    GlobalState.TgtZoom = { x: cursorPointPreZoom.x, y: cursorPointPreZoom.y };
 
-    // Checks for new zoom target:
-    if (event.clientX != GlobalState.ZoomPosition.x || event.clientY != GlobalState.ZoomPosition.y){
-        // Window cursor position:
-        GlobalState.ZoomPosition.x = event.clientX;
-        GlobalState.ZoomPosition.y = event.clientY;
-        // SVG cursor position:
-        GlobalState.TgtZoom = { x: cursorPointPreZoom.x, y: cursorPointPreZoom.y };
-    }
+    // // Checks for new zoom target:
+    // if (event.clientX != GlobalState.ZoomPosition.x || event.clientY != GlobalState.ZoomPosition.y){
+    //     // Window cursor position:
+    //     GlobalState.ZoomPosition.x = event.clientX;
+    //     GlobalState.ZoomPosition.y = event.clientY;
+    //     // SVG cursor position:
+    //     GlobalState.TgtZoom = { x: cursorPointPreZoom.x, y: cursorPointPreZoom.y };
+    // }
 
     // Scroll intensity:
     const baseScaleFactor = 1.1;
@@ -101,8 +110,11 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
 
 });
 
-// Click functionality, processInput for pending commands
+// Mousedown functionality: 
+// - if there are pending commands, processInput({x,y});
+// - else, start object selection (by clicking or by drawing rectangle)
 GlobalElems.SvgElement.addEventListener("mousedown", function(event) {
+    event.preventDefault();
     const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
     const x = svgPoint.x;
     const y = svgPoint.y;
@@ -119,10 +131,4 @@ GlobalElems.SvgElement.addEventListener("mousedown", function(event) {
     GlobalState.TimeoutHandle = setTimeout(() => {GlobalElems.CoordsTextElem.textContent = "";}, 2000);
 });
 
-function returnDistancesToShapes(coords) {
-    let dists = [];
-    // GlobalState.ShapeMap.forEach(shape => console.log(shape.getClickDistance(coords)));
-    GlobalState.ShapeMap.forEach(shape => dists.push({id: shape.id, dist: shape.getClickDistance(coords)}));
-    console.log(dists);
-
-}
+// Mouse

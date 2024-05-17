@@ -1,7 +1,7 @@
 import { GlobalElems, GlobalState } from '../global_state.js';
-import { getCursorCoords } from '../svg_utils.js';
+import { getCursorCoords, createSvgElement } from '../svg_utils.js';
 import { parseCoords } from '../command_exec.js';
-import { updateTimelineCLI } from '../cli_utils.js';
+import { updateTimelineCLI, resetCliInput } from '../cli_utils.js';
 
 export class Line {
     static lastId = 0;
@@ -18,15 +18,15 @@ export class Line {
         
         this.createLineElement();
 
+        GlobalElems.CliPrefix.innerHTML = 'Line: Specify first point:&nbsp;';
+        GlobalElems.CommandLine.placeholder = 'x,y';
+
         console.log('new Line class obj., id:', this.id);
     }
 
     createLineElement() {
         if (!this.svgLine) {
-            this.svgLine = document.createElementNS("http://www.w3.org/2000/svg", 'line');
-            this.svgLine.setAttribute('stroke', 'black');
-            this.svgLine.setAttribute('stroke-width', GlobalState.LineWidthDisplay);
-            this.svg.appendChild(this.svgLine);
+            this.svgLine = createSvgElement('line', {'stroke': 'black', 'stroke-width': `${GlobalState.LineWidthDisplay}`}, this.svg);
         } else {
             this.svg.appendChild(this.svgLine);
         }
@@ -47,6 +47,9 @@ export class Line {
         if (this.points.length === 1) { // points: list of point objects
             this.updateLineElement(point);
             this.attachMouseMoveHandler();
+
+            GlobalElems.CliPrefix.innerHTML = 'Line: Specify second point:&nbsp;';
+
         } else if (this.points.length === 2 && !this.isComplete) {
             this.consolidateShape();
         }
@@ -75,6 +78,7 @@ export class Line {
         this.detachMouseMoveHandler();
         GlobalState.ShapeMap.set(this.id, this);
         this.updateDisplay();
+        resetCliInput();
         console.log(`line consolidated`);
     }
 
@@ -96,6 +100,7 @@ export class Line {
             this.detachMouseMoveHandler();
             this.svgLine.remove();
         }
+        resetCliInput();
         GlobalState.ShapeMap.delete(this.id);
     }
 
