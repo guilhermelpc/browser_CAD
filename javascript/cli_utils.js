@@ -40,6 +40,9 @@ function handleEsc() {
 }
 
 function unselectShapes() {
+    // -- Remove highlits from selected shapes here -- //
+
+    
     GlobalState.SelectedShapes = [];
 }
 
@@ -53,7 +56,7 @@ export function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// Automatic CLI focus, spacebar handler, esc handler:
+// Automatic CLI focus, spacebar handler, esc handler, ctrl+z and related:
 document.addEventListener('keydown', function(event) {
     if(event.key === 'Escape') {
         handleEsc();
@@ -66,6 +69,7 @@ document.addEventListener('keydown', function(event) {
     if (document.activeElement !== GlobalElems.CommandLine) {
         GlobalElems.CommandLine.focus();
     }
+
     if (event.key === 'z' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
         unselectShapes();
         GlobalState.ExecutionHistory.undo();

@@ -12,7 +12,7 @@ export class Line {
         this.type = 'line';
         this.id = `${this.type}${++Line.lastId}`
         // Variables to be modified:
-        this.points = [];
+        this.points = []; // List of coordinates-objects, e.g. [{x1,y1}, {x2,y2}]
         this.isComplete = false; // Set exclusively by consolidateShape()
         this.svgLine = null; // SVG line element, set by createLineElement(), modified by other methods
         
@@ -44,18 +44,15 @@ export class Line {
         }
         this.points.push(point); // point: object {x, y}
 
-        if (this.points.length === 1) { // points: list of point objects
+        if (this.points.length === 1) {
             this.updateLineElement(point);
-            this.attachMouseMoveHandler();
-
             GlobalElems.CliPrefix.innerHTML = 'Line: Specify second point:&nbsp;';
-
         } else if (this.points.length === 2 && !this.isComplete) {
             this.consolidateShape();
         }
     }
 
-    updateLineElement(cursorPos = null) { // Called by handleInput, consolidateShape and mouseMoveHandler
+    updateLineElement(cursorPos = null) { // Called by handleInput, updateCoord, and consolidateShape
         if (!this.svgLine) { 
             return; 
         }
@@ -72,10 +69,16 @@ export class Line {
         }
     }
 
+    updateCoord(svgPoint) {
+        if (this.points.length != 1) { return; }
+        const x = svgPoint.x;
+        const y = svgPoint.y;
+        this.updateLineElement({x, y});
+    }
+
     consolidateShape() {
         this.updateLineElement();
         this.isComplete = true;
-        this.detachMouseMoveHandler();
         GlobalState.ShapeMap.set(this.id, this);
         this.updateDisplay();
         resetCliInput();
@@ -97,25 +100,14 @@ export class Line {
 
     cancel(){ // Cancel and/or deletes
         if (this.svgLine) {
-            this.detachMouseMoveHandler();
             this.svgLine.remove();
         }
         resetCliInput();
         GlobalState.ShapeMap.delete(this.id);
     }
 
-    attachMouseMoveHandler() {
-        this.mouseMoveHandler = event => {
-            const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
-            const x = svgPoint.x;
-            const y = svgPoint.y;
-            this.updateLineElement({x, y});
-        };
-        this.svg.addEventListener('mousemove', this.mouseMoveHandler);
-    }
-
-    detachMouseMoveHandler() {
-        this.svg.removeEventListener('mousemove', this.mouseMoveHandler);
+    updateDisplay() {
+        this.svgLine.setAttribute('stroke-width', GlobalState.LineWidthDisplay);
     }
 
     getClickDistance(input) {
@@ -156,9 +148,5 @@ export class Line {
         const distance = Math.sqrt(dx * dx + dy * dy);
     
         return distance;
-    }
-
-    updateDisplay() {
-        this.svgLine.setAttribute('stroke-width', GlobalState.LineWidthDisplay);
     }
 }

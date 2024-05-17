@@ -3,7 +3,9 @@ export const GlobalState = {
     AspectRatio: 1, // modified by svg_utils.js
     ViewBox: { x: 0, y: 0, width: 400, height: 400 }, // modified by svg_utils.js
     ZoomCoords: { x: 200, y: 200 }, // In SVG coordinates, modified by svg_utils.js
-    SelectionCoords: null,
+    SelectionCoords: null, // Stores the initial click coordinates for shape-selection
+    CursorPrecisionFactor: 0.002, // Gets multiplied by screen height for dynamic scale
+    CursorPrecision: (0.001 * 400), // Gets updated by svg_utils (update aspecratio and zoom functions)
     // CLI:
     CLITimeline: [], 
     CLIInputField: [],
