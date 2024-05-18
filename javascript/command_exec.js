@@ -93,6 +93,7 @@ const commandMap = {
     'line': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
     'printstate': () => {
         console.log('Shape Map:', GlobalState.ShapeMap); 
+        console.log('Shape Map Length:', GlobalState.ShapeMap.size);
         console.log(`Undo stack: ${GlobalState.ExecutionHistory.undoStack}`);
         console.log(`Redo stack: ${GlobalState.ExecutionHistory.redoStack}`);
     },

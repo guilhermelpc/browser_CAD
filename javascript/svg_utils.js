@@ -1,5 +1,18 @@
 import { GlobalElems, GlobalState } from './global_state.js';
 import { processInput } from './command_exec.js';
+import { generateCircleMarker } from './svg_markers/circle_marker.js';
+
+export function generateMarkers() {
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    GlobalElems.SvgElementDefs = svgCanvas.querySelector("defs");
+    if (!GlobalElems.SvgElementDefs) {
+        GlobalElems.SvgElementDefs = document.createElementNS(svgNS, "defs");
+        GlobalElems.SvgElement.appendChild(GlobalElems.SvgElementDefs);
+    }
+
+    generateCircleMarker();
+}
 
 // For creating SVG elements:
 export function createSvgElement(elementName, attributes, parentElement, innerHTML = null) {
@@ -53,10 +66,24 @@ export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
 function returnDistancesToShapes(coords) {
     let dists = [];
 
-    GlobalState.ShapeMap.forEach(shape => dists.push({shape, dist: shape.getClickDistance(coords)}));
+    GlobalState.ShapeMap.forEach(shape => dists.push({ shape: shape, dist: shape.getClickDistance(coords) }));
 
     return dists;
 }
+
+export function updateObjectSelection() {
+    GlobalState.ShapeMap.forEach(shape => { shape.isSelected(false) });
+    GlobalState.SelectedShapes.forEach(shape => { shape.isSelected(true) });
+}
+
+function removeHoverHighlights() {
+    try {
+        GlobalState.ShapeMap.forEach(shape => { shape.highlightObject(false) });
+    } catch(error) {
+        console.log(`err ${error}`);
+        console.log(error.message);
+    }
+} 
 
 // Zoom functionality:
 GlobalElems.SvgElement.addEventListener('wheel', function(event) {
@@ -125,7 +152,7 @@ GlobalElems.SvgElement.addEventListener("mousedown", function(event) {
 
     // Store click coords if there aren't pending commands:
     GlobalState.SelectionCoords = { x: svgPoint.x, y: svgPoint.y };
-    
+
     // Test section: print click coordinates on screen:
     // GlobalElems.CoordsTextElem.textContent = `${parseFloat(x).toFixed(1)}, ${parseFloat(y).toFixed(1)}`;
     // clearTimeout(GlobalState.TimeoutHandle);
@@ -134,6 +161,8 @@ GlobalElems.SvgElement.addEventListener("mousedown", function(event) {
 
 // - Mouse movement:
 GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
+    removeHoverHighlights();
+
     const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
     const x = svgPoint.x;
     const y = svgPoint.y;
@@ -146,14 +175,14 @@ GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
 
     // If mouse button is not being held
     if (!GlobalState.SelectionCoords) {
-        // -- Highlight selection-preview for shapes here --
         let dists = returnDistancesToShapes(svgPoint);
         let closeShapes = [];
+        
         dists.forEach(dist => {dist.dist < 3 * GlobalState.CursorPrecision ? closeShapes.push(dist) : null});
+
         if (closeShapes.length > 0) {
-            dists.forEach(dist => {  });
-            console.log(`shape hovered: ${closeShapes[0].shape.id}`)
-        }
+            closeShapes.forEach(shape => { shape.shape.highlightObject(true) });
+        } 
 
     // If mouse button is being held, draw rectangle:
     } else {
@@ -176,7 +205,7 @@ GlobalElems.SvgElement.addEventListener("mouseup", function(event) {
 
     const svgPointEnd = getCursorCoords(event, GlobalElems.SvgElement);
 
-    // Ignore small movements (less than GlobalState.CursorPrecision):
+    // Draw rectangle (if movement is greater than GlobalState.CursorPrecision):
     if (Math.abs(GlobalState.SelectionCoords.x) - Math.abs(svgPointEnd.x) > GlobalState.CursorPrecision ||
         Math.abs(GlobalState.SelectionCoords.y) - Math.abs(svgPointEnd.y) > GlobalState.CursorPrecision) {
         // -- Consolidate rectangle-select here (add shapes to GlobalState.SelectedShapes here and delete rectangle) --
@@ -184,17 +213,21 @@ GlobalElems.SvgElement.addEventListener("mouseup", function(event) {
     
     // Click-select:
     } else {
-        let dists = returnDistancesToShapes(GlobalState.SelectionCoords);
+        let dists = returnDistancesToShapes(GlobalState.SelectionCoords); // Returns list like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
         let closeShapes = [];
         dists.forEach(dist => {dist.dist < 3 * GlobalState.CursorPrecision ? closeShapes.push(dist) : null});
         if (closeShapes.length === 0) {
             closeShapes = [];
+            GlobalState.SelectedShapes = [];
         }
         if (closeShapes.length === 1) {
             console.log(`shape selected: ${closeShapes[0].shape.id}`)
             // -- add shapes to GlobalState.SelectedShapes here --
 
+            GlobalState.SelectedShapes.push(closeShapes[0].shape);
+
         }
+        updateObjectSelection();
     }
 
     GlobalState.SelectionCoords = null

@@ -15,6 +15,7 @@ export class Line {
         this.points = []; // List of coordinates-objects, e.g. [{ x1, y1 }, { x2, y2 }]
         this.isComplete = false; // Set exclusively by this.consolidateShape()
         this.svgLine = null; // SVG line element, set by this.createLineElement(), modified by other methods
+        this.svgLineHighlight = null;
 
         this.createLineElement();
 
@@ -24,10 +25,19 @@ export class Line {
 
     }
 
-    createLineElement() {
+    createLineElement() { // Creates also one thicker line for dynamic highlighting
         if (!this.svgLine) {
-            this.svgLine = createSvgElement('line', {'stroke': 'black', 'stroke-width': `${GlobalState.LineWidthDisplay}`}, this.svg);
+
+            this.svgLineHighlight = createSvgElement('line', {
+                'stroke': 'transparent', 'stroke-width': `${GlobalState.LineWidthDisplay * GlobalState.HighlightThicknessFactor}`
+            }, this.svg);
+
+            this.svgLine = createSvgElement('line', {
+                'stroke': 'black', 'stroke-width': `${GlobalState.LineWidthDisplay}`
+            }, this.svg);
+
         } else {
+            this.svg.appendChild(this.svgLineHighlight);
             this.svg.appendChild(this.svgLine);
         }
     }
@@ -80,8 +90,15 @@ export class Line {
         this.updateLineElement();
         this.isComplete = true;
         GlobalState.ShapeMap.set(this.id, this);
-        this.updateDisplay();
         resetCliInput();
+        // Creates highlight line:
+        this.svgLineHighlight.setAttribute('x1', this.points[0].x);
+        this.svgLineHighlight.setAttribute('y1', this.points[0].y);
+        this.svgLineHighlight.setAttribute('x2', this.points[1].x);
+        this.svgLineHighlight.setAttribute('y2', this.points[1].y);
+        this.svgLineHighlight.setAttribute('stroke', 'transparent');
+
+        this.updateDisplay();
         console.log(`line consolidated`);
     }
 
@@ -102,12 +119,38 @@ export class Line {
         if (this.svgLine) {
             this.svgLine.remove();
         }
+        if (this.svgLineHighlight) {
+            this.svgLineHighlight.remove();
+        }
         resetCliInput();
         GlobalState.ShapeMap.delete(this.id);
     }
 
     updateDisplay() { // Called by zoom functionality (svg_utils.js) to update stroke-width
         this.svgLine.setAttribute('stroke-width', GlobalState.LineWidthDisplay);
+        this.svgLineHighlight.setAttribute('stroke-width', GlobalState.LineWidthDisplay * GlobalState.HighlightThicknessFactor);
+    }
+
+    highlightObject(option) {
+        if (option === true) {
+            this.svgLineHighlight.setAttribute('stroke', `${GlobalState.HighlightColor}`);
+        } else {
+            this.svgLineHighlight.setAttribute('stroke', 'transparent');
+        }
+    }
+
+    isSelected(option) {
+        if (option === true) {
+            this.svgLineHighlight.setAttribute('stroke', `${GlobalState.HighlightColor}`);
+            this.svgLine.setAttribute("marker-start", "url(#circleMarker)");
+            this.svgLine.setAttribute("marker-mid", "url(#circleMarker)");
+            this.svgLine.setAttribute("marker-end", "url(#circleMarker)");
+        } else {
+            this.svgLineHighlight.setAttribute('stroke', 'transparent');
+            this.svgLine.removeAttribute("marker-start");
+            this.svgLine.removeAttribute("marker-mid");
+            this.svgLine.removeAttribute("marker-end");
+        }
     }
 
     getClickDistance(input) { // Called by returnDistancesToShapes(coords) in svg_utils.js through GlobalState.ShapeMap

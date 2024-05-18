@@ -1,5 +1,6 @@
 import { GlobalElems, GlobalState } from './global_state.js';
 import { processInput } from './command_exec.js';
+import { updateObjectSelection } from './svg_utils.js';
 
 // CLI Timeline update - adds its argument to the CLI's timeline:
 export function updateTimelineCLI(cmdString) {
@@ -40,10 +41,8 @@ function handleEsc() {
 }
 
 function unselectShapes() {
-    // -- Remove highlits from selected shapes here -- //
-
-    
     GlobalState.SelectedShapes = [];
+    updateObjectSelection();
 }
 
 export function resetCliInput() {

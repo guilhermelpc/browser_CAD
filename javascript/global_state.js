@@ -14,11 +14,13 @@ export const GlobalState = {
     ExecutionHistory: null, // Defined as a `CommandHistory` class instance by main.js
     PendingCommand: null, // Defined by `ShapeCommand` class instance, or similar, by command_exec.js
     // Working state:
-    ShapeMap: new Map(),
-    SelectedShapes: [],
+    ShapeMap: new Map(), // Objects like Line etc. stored here
+    SelectedShapes: [], // Objects like Line etc. stored here
     Layers: null,
-    // Styles
-    LineWidthDisplay: 2, // Updated by svg_utils.js (by updateViewBoxAspectRatio() and zoom functionality)
+    // Styles:
+    LineWidthDisplay: 2, // Updated by svg_utils.js (with updateViewBoxAspectRatio() and zoom functionality)
+    HighlightColor: '#85a7d4',
+    HighlightThicknessFactor: 1.8,
     // Misc.
     TimeoutHandle: 0,
 }
@@ -26,10 +28,13 @@ export const GlobalState = {
 export const GlobalElems = {
     // SVG Canvas:
     SvgElement: document.getElementById("svgCanvas"),
+    SvgElementDefs: null, // Instantiated by svg_utils.js
     // CLI HTML Elements:
     CLIHistory: document.getElementById('cliHistory'),
     CommandLine: document.getElementById('cliInput'),
     CliPrefix: document.getElementById('commandPrefix'),
+    // SVG Markers:
+    CircleMarker: null, // Visual cues for editing selected shapes. Defined by svg_utils.js
 
     // TEST:
     CoordsTextElem: {}, // Text SVG elem. created in main.js
