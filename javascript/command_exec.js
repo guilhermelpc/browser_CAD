@@ -96,7 +96,7 @@ const commandMap = {
         console.log(`Undo stack: ${GlobalState.ExecutionHistory.undoStack}`);
         console.log(`Redo stack: ${GlobalState.ExecutionHistory.redoStack}`);
     },
-    'listshapes': () => { GlobalState.ShapeMap.forEach(shape => console.log(shape.points)) },
+    'listshapes': () => { GlobalState.ShapeMap.forEach(shape => console.log(shape)) },
     'redo': () => GlobalState.ExecutionHistory.redo(),
     'undo': () => GlobalState.ExecutionHistory.undo(),
 }

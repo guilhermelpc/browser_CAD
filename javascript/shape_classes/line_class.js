@@ -1,5 +1,5 @@
 import { GlobalElems, GlobalState } from '../global_state.js';
-import { getCursorCoords, createSvgElement } from '../svg_utils.js';
+import { createSvgElement } from '../svg_utils.js';
 import { parseCoords } from '../command_exec.js';
 import { updateTimelineCLI, resetCliInput } from '../cli_utils.js';
 
@@ -12,16 +12,16 @@ export class Line {
         this.type = 'line';
         this.id = `${this.type}${++Line.lastId}`
         // Variables to be modified:
-        this.points = []; // List of coordinates-objects, e.g. [{x1,y1}, {x2,y2}]
-        this.isComplete = false; // Set exclusively by consolidateShape()
-        this.svgLine = null; // SVG line element, set by createLineElement(), modified by other methods
-        
+        this.points = []; // List of coordinates-objects, e.g. [{ x1, y1 }, { x2, y2 }]
+        this.isComplete = false; // Set exclusively by this.consolidateShape()
+        this.svgLine = null; // SVG line element, set by this.createLineElement(), modified by other methods
+
         this.createLineElement();
 
+        // CLI hints:
         GlobalElems.CliPrefix.innerHTML = 'Line: Specify first point:&nbsp;';
         GlobalElems.CommandLine.placeholder = 'x,y';
 
-        console.log('new Line class obj., id:', this.id);
     }
 
     createLineElement() {
@@ -33,16 +33,16 @@ export class Line {
     }
 
     handleInput(input) { // Called by processInput->ShapeCommand.handleInput if there's pending command
-        let point = input;
+        let point = input; // point: { x, y } object or 'x,y' string
         if (typeof input === 'string') {
             point = parseCoords(input); // parseCoords(input) returns null for invalid input
             if (!point) {
-                console.error('Invalid coordinate input:', input);
                 updateTimelineCLI(`Invalid line coordinate input: '${input}'`);
+                console.error('Invalid coordinate input:', input);
                 return;
             }
         }
-        this.points.push(point); // point: object {x, y}
+        this.points.push(point);
 
         if (this.points.length === 1) {
             this.updateLineElement(point);
@@ -52,7 +52,7 @@ export class Line {
         }
     }
 
-    updateLineElement(cursorPos = null) { // Called by handleInput, updateCoord, and consolidateShape
+    updateLineElement(cursorPos = null) { // Called by this.handleInput, this.updateCoord, and this.consolidateShape
         if (!this.svgLine) { 
             return; 
         }
@@ -69,14 +69,14 @@ export class Line {
         }
     }
 
-    updateCoord(svgPoint) {
+    updateCoord(svgPoint) { // Called by mousemove eventListener (in svg_utils.js) attached to GlobalElems.SvgElement
         if (this.points.length != 1) { return; }
         const x = svgPoint.x;
         const y = svgPoint.y;
         this.updateLineElement({x, y});
     }
 
-    consolidateShape() {
+    consolidateShape() { // Called by this.handleInput(input) and this.restoreState(state)
         this.updateLineElement();
         this.isComplete = true;
         GlobalState.ShapeMap.set(this.id, this);
@@ -92,8 +92,8 @@ export class Line {
         };
     }
 
-    restoreState(state) { // Called by 'redo'
-        this.createLineElement(); // If there's already a line element, this function will only append it to the canvas
+    restoreState(state) { // Called by ShapeCommand's redo() (command_exec.js)
+        this.createLineElement(); // If there's already a line element, createLineElement will only append it to the canvas
         this.points = state.points;
         this.consolidateShape();
     }
@@ -106,11 +106,11 @@ export class Line {
         GlobalState.ShapeMap.delete(this.id);
     }
 
-    updateDisplay() {
+    updateDisplay() { // Called by zoom functionality (svg_utils.js) to update stroke-width
         this.svgLine.setAttribute('stroke-width', GlobalState.LineWidthDisplay);
     }
 
-    getClickDistance(input) {
+    getClickDistance(input) { // Called by returnDistancesToShapes(coords) in svg_utils.js through GlobalState.ShapeMap
         if (!this.isComplete || this.points.length != 2) { return null; }
 
         const A = input.x - this.points[0].x
