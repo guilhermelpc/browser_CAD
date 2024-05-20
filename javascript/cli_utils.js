@@ -40,7 +40,7 @@ function handleEsc() {
     unselectShapes();
 }
 
-function unselectShapes() {
+export function unselectShapes() {
     GlobalState.SelectedShapes = [];
     updateObjectSelection();
 }

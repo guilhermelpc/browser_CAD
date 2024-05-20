@@ -13,21 +13,26 @@ export class Line {
         this.id = `${this.type}${++Line.lastId}`
         // Variables to be modified:
         this.points = []; // List of coordinates-objects, e.g. [{ x1, y1 }, { x2, y2 }]
+        this.center = null; // Coordinates { x, y } of the center of the Line. Used to place the circle marker at the middle.
         this.isComplete = false; // Set exclusively by this.consolidateShape()
         this.svgLine = null; // SVG line element, set by this.createLineElement(), modified by other methods
-        this.svgLineHighlight = null;
+        this.svgLineHighlight = null; // Thicker line that gets shown to highlight element
+
+        this.selectionMarks = {
+            start: null,
+            mid: null,
+            end: null
+        };
 
         this.createLineElement();
 
         // CLI hints:
         GlobalElems.CliPrefix.innerHTML = 'Line: Specify first point:&nbsp;';
         GlobalElems.CommandLine.placeholder = 'x,y';
-
     }
 
     createLineElement() { // Creates also one thicker line for dynamic highlighting
         if (!this.svgLine) {
-
             this.svgLineHighlight = createSvgElement('line', {
                 'stroke': 'transparent', 'stroke-width': `${GlobalState.LineWidthDisplay * GlobalState.HighlightThicknessFactor}`
             }, this.svg);
@@ -42,7 +47,7 @@ export class Line {
         }
     }
 
-    handleInput(input) { // Called by processInput->ShapeCommand.handleInput if there's pending command
+    handleInput(input) { // Called by processInput -> ShapeCommand.handleInput if there's pending command
         let point = input; // point: { x, y } object or 'x,y' string
         if (typeof input === 'string') {
             point = parseCoords(input); // parseCoords(input) returns null for invalid input
@@ -55,18 +60,17 @@ export class Line {
         this.points.push(point);
 
         if (this.points.length === 1) {
-            this.updateLineElement(point);
+            this.updateElement(point);
             GlobalElems.CliPrefix.innerHTML = 'Line: Specify second point:&nbsp;';
         } else if (this.points.length === 2 && !this.isComplete) {
             this.consolidateShape();
         }
     }
 
-    updateLineElement(cursorPos = null) { // Called by this.handleInput, this.updateCoord, and this.consolidateShape
+    updateElement(cursorPos = null) { // Called by this.handleInput, this.updateCoord, and this.consolidateShape
         if (!this.svgLine) { 
             return; 
         }
-
         this.svgLine.setAttribute('x1', this.points[0].x);
         this.svgLine.setAttribute('y1', this.points[0].y);
 
@@ -83,22 +87,67 @@ export class Line {
         if (this.points.length != 1) { return; }
         const x = svgPoint.x;
         const y = svgPoint.y;
-        this.updateLineElement({x, y});
+        this.updateElement({x, y});
+    }
+
+    returnObjectCenter() { // Called by this.consolidateShape()
+        const midX = (this.points[0].x + this.points[1].x) / 2;
+        const midY = (this.points[0].y + this.points[1].y) / 2;
+        return { x: midX, y: midY };
+    }
+
+    // Consolidate coords for highlight Line, creates selection grab marks:
+    instantiateVisualCues(option) {
+        if (option === true) {
+            // Consolidate highlight line (instantiated by this.createLineElement()):
+            this.svgLineHighlight.setAttribute('x1', this.points[0].x);
+            this.svgLineHighlight.setAttribute('y1', this.points[0].y);
+            this.svgLineHighlight.setAttribute('x2', this.points[1].x);
+            this.svgLineHighlight.setAttribute('y2', this.points[1].y);
+            this.svgLineHighlight.setAttribute('stroke', 'transparent');
+
+            // Create marks for grabbing:
+            Object.keys(this.selectionMarks).forEach(key => {
+                this.selectionMarks[key] = document.createElementNS("http://www.w3.org/2000/svg", "use");
+                this.selectionMarks[key].setAttributeNS("http://www.w3.org/1999/xlink", "href", "#circleReusableElement");
+                if (key == 'start') {
+                    this.selectionMarks[key].setAttribute("x", this.points[0].x);
+                    this.selectionMarks[key].setAttribute("y", this.points[0].y);
+                }
+                if (key == 'mid') {
+                    this.selectionMarks[key].setAttribute("x", this.center.x);
+                    this.selectionMarks[key].setAttribute("y", this.center.y);
+                }
+                if (key == 'end') {
+                    this.selectionMarks[key].setAttribute("x", this.points[1].x);
+                    this.selectionMarks[key].setAttribute("y", this.points[1].y);
+                }
+                this.selectionMarks[key].setAttribute("fill", "transparent");
+                this.svg.appendChild(this.selectionMarks[key]);
+            });
+        }
+        if (option === false) {
+            Object.keys(this.selectionMarks).forEach(key => {
+                if (this.selectionMarks[key] !== null) {
+                    this.selectionMarks[key].remove();
+                    this.selectionMarks[key] = null;
+                }
+            });
+        }
     }
 
     consolidateShape() { // Called by this.handleInput(input) and this.restoreState(state)
-        this.updateLineElement();
         this.isComplete = true;
-        GlobalState.ShapeMap.set(this.id, this);
-        resetCliInput();
-        // Creates highlight line:
-        this.svgLineHighlight.setAttribute('x1', this.points[0].x);
-        this.svgLineHighlight.setAttribute('y1', this.points[0].y);
-        this.svgLineHighlight.setAttribute('x2', this.points[1].x);
-        this.svgLineHighlight.setAttribute('y2', this.points[1].y);
-        this.svgLineHighlight.setAttribute('stroke', 'transparent');
+        this.center = this.returnObjectCenter(); // Bases on this.points
+        this.updateElement(); // Set line coords based on this.points
+        this.instantiateVisualCues(true); // Sets highlight line coords and selection grab-marks based on this.points
 
-        this.updateDisplay();
+        GlobalState.ShapeMap.set(this.id, this);
+    
+        resetCliInput();
+
+        this.updateDisplayZoom();
+
         console.log(`line consolidated`);
     }
 
@@ -116,22 +165,26 @@ export class Line {
     }
 
     cancel(){ // Cancel and/or deletes
-        if (this.svgLine) {
+        if (this.svgLine !== null) {
             this.svgLine.remove();
+            this.svgLine = null;
         }
-        if (this.svgLineHighlight) {
+        if (this.svgLineHighlight !== null) {
             this.svgLineHighlight.remove();
+            this.svgLineHighlight = null;
         }
+        this.instantiateVisualCues(false); 
         resetCliInput();
         GlobalState.ShapeMap.delete(this.id);
     }
 
-    updateDisplay() { // Called by zoom functionality (svg_utils.js) to update stroke-width
+    // Updates only line width. Grab-marks are scaled in svg_utils.js with updateStyleZoom()
+    updateDisplayZoom() { // Called by zoom functionality (svg_utils.js) to update stroke-width
         this.svgLine.setAttribute('stroke-width', GlobalState.LineWidthDisplay);
         this.svgLineHighlight.setAttribute('stroke-width', GlobalState.LineWidthDisplay * GlobalState.HighlightThicknessFactor);
     }
 
-    highlightObject(option) {
+    highlightObject(option) { // Called in svg_utils.js by removeHoverHighlights() and the 'mousemove' eventListener
         if (option === true) {
             this.svgLineHighlight.setAttribute('stroke', `${GlobalState.HighlightColor}`);
         } else {
@@ -139,17 +192,12 @@ export class Line {
         }
     }
 
-    isSelected(option) {
+    // Show/hide grab-marks
+    isSelected(option) { // Called by updateObjectSelection (svg_utils.js)
         if (option === true) {
-            this.svgLineHighlight.setAttribute('stroke', `${GlobalState.HighlightColor}`);
-            this.svgLine.setAttribute("marker-start", "url(#circleMarker)");
-            this.svgLine.setAttribute("marker-mid", "url(#circleMarker)");
-            this.svgLine.setAttribute("marker-end", "url(#circleMarker)");
+            Object.keys(this.selectionMarks).forEach(key => { this.selectionMarks[key].setAttribute("fill", `${GlobalState.GrabMarkCokor}`); });
         } else {
-            this.svgLineHighlight.setAttribute('stroke', 'transparent');
-            this.svgLine.removeAttribute("marker-start");
-            this.svgLine.removeAttribute("marker-mid");
-            this.svgLine.removeAttribute("marker-end");
+            Object.keys(this.selectionMarks).forEach(key => { this.selectionMarks[key].setAttribute("fill", "transparent"); });
         }
     }
 

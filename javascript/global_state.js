@@ -20,6 +20,7 @@ export const GlobalState = {
     // Styles:
     LineWidthDisplay: 2, // Updated by svg_utils.js (with updateViewBoxAspectRatio() and zoom functionality)
     HighlightColor: '#85a7d4',
+    GrabMarkCokor: '#323ca8',
     HighlightThicknessFactor: 1.8,
     // Misc.
     TimeoutHandle: 0,
@@ -35,7 +36,7 @@ export const GlobalElems = {
     CliPrefix: document.getElementById('commandPrefix'),
     // SVG Markers:
     CircleMarker: null, // Visual cues for editing selected shapes. Defined by svg_utils.js
-
+    CircleReusableElement : null, // Visual cues for editing selected shapes. Defined by svg_utils.js
     // TEST:
     CoordsTextElem: {}, // Text SVG elem. created in main.js
 }

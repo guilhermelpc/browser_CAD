@@ -55,12 +55,23 @@ export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
     }
     viewBoxGlobal.width = width;
     viewBoxGlobal.height = height;
-    // Scale dependent values updated:
-    GlobalState.LineWidthDisplay = viewBoxGlobal.height / 500;
-    GlobalState.CursorPrecision = GlobalState.CursorPrecisionFactor * viewBoxGlobal.height;
     
+    // Scale dependent values updated:
+    updateStyleZoom();
+
     parentElement.setAttribute('viewBox', `${viewBoxGlobal.x} ${viewBoxGlobal.y} 
         ${viewBoxGlobal.width} ${viewBoxGlobal.height}`);
+}
+
+export function updateObjectSelection() { // Called by mouseUp eventListener. Also called by unselectShapes() in cli_utils.js;
+    GlobalState.ShapeMap.forEach(shape => { shape.isSelected(false) });
+    GlobalState.SelectedShapes.forEach(shape => { shape.isSelected(true) });
+}
+
+function updateStyleZoom() { // Called by updateViewBoxAspectRatio and scroll eventListener
+    GlobalState.LineWidthDisplay = GlobalState.ViewBox.height / 500;
+    GlobalState.CursorPrecision = GlobalState.CursorPrecisionFactor * GlobalState.ViewBox.height;
+    GlobalElems.CircleReusableElement.setAttribute("r", `${3 * GlobalState.LineWidthDisplay}`);
 }
 
 function returnDistancesToShapes(coords) {
@@ -69,11 +80,6 @@ function returnDistancesToShapes(coords) {
     GlobalState.ShapeMap.forEach(shape => dists.push({ shape: shape, dist: shape.getClickDistance(coords) }));
 
     return dists;
-}
-
-export function updateObjectSelection() {
-    GlobalState.ShapeMap.forEach(shape => { shape.isSelected(false) });
-    GlobalState.SelectedShapes.forEach(shape => { shape.isSelected(true) });
 }
 
 function removeHoverHighlights() {
@@ -122,13 +128,12 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
         ${GlobalState.ViewBox.width} ${GlobalState.ViewBox.height}`);
 
     // Scale dependent values updated:
-    GlobalState.LineWidthDisplay = GlobalState.ViewBox.height / 500;
-    GlobalState.CursorPrecision = GlobalState.CursorPrecisionFactor * GlobalState.ViewBox.height;
+    updateStyleZoom();
 
-    
-    GlobalState.ShapeMap.forEach(shape => { shape.updateDisplay(); });
+    // Update objects display
+    GlobalState.ShapeMap.forEach(shape => { shape.updateDisplayZoom(); });
     if (GlobalState.PendingCommand) {
-        GlobalState.PendingCommand.shape.updateDisplay();
+        GlobalState.PendingCommand.shape.updateDisplayZoom();
     }
 });
 
@@ -186,9 +191,10 @@ GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
 
     // If mouse button is being held, draw rectangle:
     } else {
-        // Ignore small movements (less than GlobalState.CursorPrecision):
-        if (Math.abs(GlobalState.SelectionCoords.x) - Math.abs(svgPoint.x) > GlobalState.CursorPrecision ||
-        Math.abs(GlobalState.SelectionCoords.y) - Math.abs(svgPoint.y) > GlobalState.CursorPrecision) {
+        const distX = GlobalState.SelectionCoords.x - svgPoint.x;
+        const distY = GlobalState.SelectionCoords.y - svgPoint.y;
+
+        if (Math.abs(distX) > GlobalState.CursorPrecision || Math.abs(distY) > GlobalState.CursorPrecision) {
             console.log('selection rectangle update');
             // -- Draw rectangle here --
 
@@ -199,6 +205,7 @@ GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
 // Release click button for object selection:
 GlobalElems.SvgElement.addEventListener("mouseup", function(event) {
     event.preventDefault();
+
     // Early return in the cases that no selection should occur:
     if (GlobalState.PendingCommand) { return; }
     if (!GlobalState.SelectionCoords) { return; }
@@ -206,11 +213,11 @@ GlobalElems.SvgElement.addEventListener("mouseup", function(event) {
     const svgPointEnd = getCursorCoords(event, GlobalElems.SvgElement);
 
     // Draw rectangle (if movement is greater than GlobalState.CursorPrecision):
-    if (Math.abs(GlobalState.SelectionCoords.x) - Math.abs(svgPointEnd.x) > GlobalState.CursorPrecision ||
-        Math.abs(GlobalState.SelectionCoords.y) - Math.abs(svgPointEnd.y) > GlobalState.CursorPrecision) {
+    const distX = GlobalState.SelectionCoords.x - svgPointEnd.x;
+    const distY = GlobalState.SelectionCoords.y - svgPointEnd.y;
+    if (Math.abs(distX) > GlobalState.CursorPrecision || Math.abs(distY) > GlobalState.CursorPrecision) {
         // -- Consolidate rectangle-select here (add shapes to GlobalState.SelectedShapes here and delete rectangle) --
 
-    
     // Click-select:
     } else {
         let dists = returnDistancesToShapes(GlobalState.SelectionCoords); // Returns list like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
@@ -225,7 +232,6 @@ GlobalElems.SvgElement.addEventListener("mouseup", function(event) {
             // -- add shapes to GlobalState.SelectedShapes here --
 
             GlobalState.SelectedShapes.push(closeShapes[0].shape);
-
         }
         updateObjectSelection();
     }
@@ -233,7 +239,7 @@ GlobalElems.SvgElement.addEventListener("mouseup", function(event) {
     GlobalState.SelectionCoords = null
 });
 
-// Prevent default context menu and text selection on right-click
+// Prevent default context menu:
 GlobalElems.SvgElement.addEventListener('contextmenu', function(event) {
     event.preventDefault(); // Prevents the context menu from appearing
     cliInput.focus(); // Ensure the CLI input remains focused

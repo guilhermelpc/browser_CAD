@@ -1,6 +1,6 @@
 import { GlobalState } from './global_state.js';
 import { Line } from './shape_classes/line_class.js';
-import { updateTimelineCLI, capitalizeFirstLetter } from './cli_utils.js';
+import { updateTimelineCLI, capitalizeFirstLetter, unselectShapes } from './cli_utils.js';
 
 class ToolCommand {
     constructor(tool) {
@@ -21,6 +21,7 @@ class ShapeCommand {
     }
 
     execute() {
+        unselectShapes();
         if (!this.memento) {
             GlobalState.PendingCommand = this;
         }
@@ -34,6 +35,10 @@ class ShapeCommand {
         } else {
             console.log(`pending command: ${GlobalState.PendingCommand.shape.type}`);
         }
+    }
+
+    edit() { 
+        // ...
     }
 
     cancel() {
@@ -89,8 +94,10 @@ export class CommandHistory {
 }
 
 const commandMap = {
+    // 'e': () => GlobalState.ExecutionHistory.executeCommand(erase),
     'l': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
     'line': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
+    // 'm': () => GlobalState.ExecutionHistory.executeCommand(erase)
     'printstate': () => {
         console.log('Shape Map:', GlobalState.ShapeMap); 
         console.log('Shape Map Length:', GlobalState.ShapeMap.size);
