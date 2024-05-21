@@ -33,15 +33,6 @@ export function createSvgElement(elementName, attributes, parentElement, innerHT
     return element;
 }
 
-// Get cursor SVG coords:
-export function getCursorCoords(evt, svg) {
-    var pt = svg.createSVGPoint();
-    pt.x = evt.clientX;
-    pt.y = evt.clientY;
-
-    return pt.matrixTransform(svg.getScreenCTM().inverse()); // Transforms window coords to svg coords
-}
-
 // Executed once when main.js starts:
 export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
     GlobalState.AspectRatio = window.innerWidth / window.innerHeight;
@@ -66,6 +57,14 @@ export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
         ${viewBoxGlobal.width} ${viewBoxGlobal.height}`);
 }
 
+// Get cursor SVG coords:
+export function getCursorCoords(evt, svg) {
+    var pt = svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+
+    return pt.matrixTransform(svg.getScreenCTM().inverse()); // Transforms window coords to svg coords
+}
 // Execute isSelected shape methods to indicate whether they're selected:
 export function updateObjectSelection() { // Called by mouseUp eventListener. Also called by unselectShapes() in cli_utils.js;
     GlobalState.ShapeMap.forEach(shape => { shape.isSelected(false) });
@@ -77,7 +76,13 @@ export function updateObjectSelection() { // Called by mouseUp eventListener. Al
 function updateStyleZoom() { // Called by updateViewBoxAspectRatio and scroll eventListener
     GlobalState.LineWidthDisplay = GlobalState.ViewBox.height / 500;
     GlobalState.CursorPrecision = GlobalState.CursorPrecisionFactor * GlobalState.ViewBox.height;
-    GlobalElems.CircleReusableElement.setAttribute("r", `${3 * GlobalState.LineWidthDisplay}`);
+
+    let markWidth = 6; // Standard width before correction by GlobalState.LineWidthDisplay
+    GlobalElems.CircleReusableElement.setAttribute("r", `${markWidth / 2 * GlobalState.LineWidthDisplay}`);
+    GlobalElems.SquareReusableElement.setAttribute("width", `${markWidth * GlobalState.LineWidthDisplay}`);
+    GlobalElems.SquareReusableElement.setAttribute("height", `${markWidth * GlobalState.LineWidthDisplay}`);
+    GlobalElems.SquareReusableElement.setAttribute("x", `${-markWidth * GlobalState.LineWidthDisplay / 2}`);
+    GlobalElems.SquareReusableElement.setAttribute("y", `${-markWidth * GlobalState.LineWidthDisplay / 2}`);
 }
 
 function returnDistancesToShapes(coords) {

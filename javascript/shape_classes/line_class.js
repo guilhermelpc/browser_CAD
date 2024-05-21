@@ -107,10 +107,12 @@ export class Line {
             this.svgLineHighlight.setAttribute('stroke', 'transparent');
 
             // Create marks for grabbing:
+
+            let width = GlobalElems.SquareReusableElement.width.baseVal.value;
             Object.keys(this.selectionMarks).forEach(key => {
                 if (this.selectionMarks[key] === null) {
                     this.selectionMarks[key] = document.createElementNS("http://www.w3.org/2000/svg", "use");
-                    this.selectionMarks[key].setAttributeNS("http://www.w3.org/1999/xlink", "href", "#circleReusableElement");
+                    this.selectionMarks[key].setAttributeNS("http://www.w3.org/1999/xlink", "href", "#squareReusableElement");
                 }
                 if (key == 'start') {
                     this.selectionMarks[key].setAttribute("x", this.points[0].x);
