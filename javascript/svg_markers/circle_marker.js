@@ -7,8 +7,7 @@ export function generateCircleMarker() {
     GlobalElems.CircleReusableElement.setAttribute("id", "circleReusableElement");
     GlobalElems.CircleReusableElement.setAttribute("cx", "0");
     GlobalElems.CircleReusableElement.setAttribute("cy", "0");
-    // GlobalElems.CircleReusableElement.setAttribute("r", "3");
     GlobalElems.SvgElementDefs.appendChild(GlobalElems.CircleReusableElement);
 
-    // Color has to be defined from the 'use' SVG element, and not from here.
+    // Color and radius have to be defined from the 'use' SVG element, and not from here.
 }

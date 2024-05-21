@@ -1,7 +1,9 @@
 import { GlobalElems, GlobalState } from './global_state.js';
 import { processInput } from './command_exec.js';
 import { generateCircleMarker } from './svg_markers/circle_marker.js';
+import { generateSquareMarker } from './svg_markers/square_marker.js';
 
+// Create svg 'defs' elements and append reusable elements/markers to it:
 export function generateMarkers() {
     const svgNS = "http://www.w3.org/2000/svg";
 
@@ -12,6 +14,7 @@ export function generateMarkers() {
     }
 
     generateCircleMarker();
+    generateSquareMarker();
 }
 
 // For creating SVG elements:
@@ -63,11 +66,14 @@ export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
         ${viewBoxGlobal.width} ${viewBoxGlobal.height}`);
 }
 
+// Execute isSelected shape methods to indicate whether they're selected:
 export function updateObjectSelection() { // Called by mouseUp eventListener. Also called by unselectShapes() in cli_utils.js;
     GlobalState.ShapeMap.forEach(shape => { shape.isSelected(false) });
     GlobalState.SelectedShapes.forEach(shape => { shape.isSelected(true) });
+    removeHoverHighlights();
 }
 
+// Change GlobalState and GlobalElems styles when zooming:
 function updateStyleZoom() { // Called by updateViewBoxAspectRatio and scroll eventListener
     GlobalState.LineWidthDisplay = GlobalState.ViewBox.height / 500;
     GlobalState.CursorPrecision = GlobalState.CursorPrecisionFactor * GlobalState.ViewBox.height;
@@ -85,6 +91,8 @@ function returnDistancesToShapes(coords) {
 function removeHoverHighlights() {
     try {
         GlobalState.ShapeMap.forEach(shape => { shape.highlightObject(false) });
+        // Keep highlight in selected objects:
+        GlobalState.SelectedShapes.forEach(shape => { shape.highlightObject(true) });
     } catch(error) {
         console.log(`err ${error}`);
         console.log(error.message);
@@ -158,6 +166,11 @@ GlobalElems.SvgElement.addEventListener("mousedown", function(event) {
     // Store click coords if there aren't pending commands:
     GlobalState.SelectionCoords = { x: svgPoint.x, y: svgPoint.y };
 
+    if (GlobalState.SelectedShapes.length > 0) {
+        // Check if click is on any grab-mark for shape-editing
+
+    }
+
     // Test section: print click coordinates on screen:
     // GlobalElems.CoordsTextElem.textContent = `${parseFloat(x).toFixed(1)}, ${parseFloat(y).toFixed(1)}`;
     // clearTimeout(GlobalState.TimeoutHandle);
@@ -172,7 +185,7 @@ GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
     const x = svgPoint.x;
     const y = svgPoint.y;
 
-    // Updates pending command in real time, and early return for no selection to occur:
+    // If there's pending command, update it in real time, and early return for no selection to occur:
     if (GlobalState.PendingCommand) {
         GlobalState.PendingCommand.shape.updateCoord({x,y});
         return;
@@ -180,8 +193,8 @@ GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
 
     // If mouse button is not being held
     if (!GlobalState.SelectionCoords) {
-        let dists = returnDistancesToShapes(svgPoint);
-        let closeShapes = [];
+        let dists = returnDistancesToShapes(svgPoint); // List like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
+        let closeShapes = []; // List like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
         
         dists.forEach(dist => {dist.dist < 3 * GlobalState.CursorPrecision ? closeShapes.push(dist) : null});
 
@@ -220,19 +233,22 @@ GlobalElems.SvgElement.addEventListener("mouseup", function(event) {
 
     // Click-select:
     } else {
-        let dists = returnDistancesToShapes(GlobalState.SelectionCoords); // Returns list like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
+        let dists = returnDistancesToShapes(GlobalState.SelectionCoords); // List like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
         let closeShapes = [];
         dists.forEach(dist => {dist.dist < 3 * GlobalState.CursorPrecision ? closeShapes.push(dist) : null});
         if (closeShapes.length === 0) {
-            closeShapes = [];
-            GlobalState.SelectedShapes = [];
+            // closeShapes = [];
+            // GlobalState.SelectedShapes = [];
+        } else if (closeShapes.length === 1) {
+            // Add selected shape to GlobalState.SelectedShapes, if not already included:
+            if (!GlobalState.SelectedShapes.includes(closeShapes[0].shape)) {
+                GlobalState.SelectedShapes.push(closeShapes[0].shape);
+            }
+            console.log(`shape selected: ${closeShapes[0].shape.id}`);
+        } else {
+            console.log(`Warning: more than one object clicked simultaneously`);
         }
-        if (closeShapes.length === 1) {
-            console.log(`shape selected: ${closeShapes[0].shape.id}`)
-            // -- add shapes to GlobalState.SelectedShapes here --
 
-            GlobalState.SelectedShapes.push(closeShapes[0].shape);
-        }
         updateObjectSelection();
     }
 

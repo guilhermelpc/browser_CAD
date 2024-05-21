@@ -94,10 +94,12 @@ export class CommandHistory {
 }
 
 const commandMap = {
-    // 'e': () => GlobalState.ExecutionHistory.executeCommand(erase),
+    // 'e': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Erase())),
+    // 'erase': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Erase())),
     'l': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
     'line': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
-    // 'm': () => GlobalState.ExecutionHistory.executeCommand(erase)
+    // 'm': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Move())),
+    // 'move': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Move())),
     'printstate': () => {
         console.log('Shape Map:', GlobalState.ShapeMap); 
         console.log('Shape Map Length:', GlobalState.ShapeMap.size);
@@ -107,6 +109,8 @@ const commandMap = {
     'listshapes': () => { GlobalState.ShapeMap.forEach(shape => console.log(shape)) },
     'redo': () => GlobalState.ExecutionHistory.redo(),
     'undo': () => GlobalState.ExecutionHistory.undo(),
+    // 'z': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
+    // 'zoom': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
 }
 
 export function processInput(input, repeat=false) {

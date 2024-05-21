@@ -108,8 +108,10 @@ export class Line {
 
             // Create marks for grabbing:
             Object.keys(this.selectionMarks).forEach(key => {
-                this.selectionMarks[key] = document.createElementNS("http://www.w3.org/2000/svg", "use");
-                this.selectionMarks[key].setAttributeNS("http://www.w3.org/1999/xlink", "href", "#circleReusableElement");
+                if (this.selectionMarks[key] === null) {
+                    this.selectionMarks[key] = document.createElementNS("http://www.w3.org/2000/svg", "use");
+                    this.selectionMarks[key].setAttributeNS("http://www.w3.org/1999/xlink", "href", "#circleReusableElement");
+                }
                 if (key == 'start') {
                     this.selectionMarks[key].setAttribute("x", this.points[0].x);
                     this.selectionMarks[key].setAttribute("y", this.points[0].y);
@@ -195,7 +197,10 @@ export class Line {
     // Show/hide grab-marks
     isSelected(option) { // Called by updateObjectSelection (svg_utils.js)
         if (option === true) {
-            Object.keys(this.selectionMarks).forEach(key => { this.selectionMarks[key].setAttribute("fill", `${GlobalState.GrabMarkCokor}`); });
+            Object.keys(this.selectionMarks).forEach(key => { 
+                this.selectionMarks[key].setAttribute("fill", `${GlobalState.GrabMarkCokor}`);
+                this.svg.appendChild(this.selectionMarks[key]); // Brings them to front of SVG
+            });
         } else {
             Object.keys(this.selectionMarks).forEach(key => { this.selectionMarks[key].setAttribute("fill", "transparent"); });
         }

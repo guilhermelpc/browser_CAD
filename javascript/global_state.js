@@ -36,7 +36,8 @@ export const GlobalElems = {
     CliPrefix: document.getElementById('commandPrefix'),
     // SVG Markers:
     CircleMarker: null, // Visual cues for editing selected shapes. Defined by svg_utils.js
-    CircleReusableElement : null, // Visual cues for editing selected shapes. Defined by svg_utils.js
+    CircleReusableElement: null, // Visual cues for editing selected shapes. Defined by svg_utils.js
+    SquareReusableElement: null,
     // TEST:
     CoordsTextElem: {}, // Text SVG elem. created in main.js
 }
