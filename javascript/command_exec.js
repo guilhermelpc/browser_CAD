@@ -22,16 +22,13 @@ class ShapeCommand {
 
     execute() {
         unselectShapes();
-        if (!this.memento) {
-            GlobalState.PendingCommand = this;
-        }
     }
 
     handleInput(input) { // Called by processInput if there's pending command
         this.shape.handleInput(input);
-
         if (this.shape.isComplete) {
             GlobalState.PendingCommand = null;  // Resetting the command after completion
+            GlobalState.ExecutionHistory.finishCommand(); 
         } else {
             console.log(`pending command: ${GlobalState.PendingCommand.shape.type}`);
         }
@@ -43,7 +40,6 @@ class ShapeCommand {
 
     cancel() {
         this.shape.cancel();
-        GlobalState.PendingCommand = null;
     }
 
     undo() {
@@ -67,19 +63,27 @@ export class CommandHistory {
     }
 
     executeCommand(command) {
-        command.execute();
-        this.undoStack.push(command);
+        GlobalState.PendingCommand = command;
+        GlobalState.PendingCommand.execute();
+        this.undoStack.push(GlobalState.PendingCommand);
+    }
+
+    finishCommand() { // Called by the command class when it's ready
         this.redoStack = [];
     }
 
     undo() { // Also called by 'Escape' key (cancel if pending command)
         const command = this.undoStack.pop();
+
         if (command) {
-            if (!GlobalState.PendingCommand) { // If there's no pending command
+            // If there's no pending command, undo history:
+            if (!GlobalState.PendingCommand) { 
                 this.redoStack.push(command);
                 command.undo();
-            } else { // if pending command, doesn't add it to redo stack
+            // if there's pending command, just cancel it:
+            } else { 
                 command.cancel();
+                GlobalState.PendingCommand = null;
             }
         }
     }

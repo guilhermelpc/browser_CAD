@@ -47,14 +47,14 @@ export class Line {
         }
     }
 
-    handleInput(input) { // Called by processInput -> ShapeCommand.handleInput if there's pending command
+    handleInput(input) { // Called by command_exec.js processInput(...) -> ShapeCommand.handleInput if there's pending command
         let point = input; // point: { x, y } object or 'x,y' string
         if (typeof input === 'string') {
             point = parseCoords(input); // parseCoords(input) returns null for invalid input
             if (!point) {
                 updateTimelineCLI(`Invalid line coordinate input: '${input}'`);
                 console.error('Invalid coordinate input:', input);
-                return;
+                return 0;
             }
         }
         this.points.push(point);
@@ -62,9 +62,12 @@ export class Line {
         if (this.points.length === 1) {
             this.updateElement(point);
             GlobalElems.CliPrefix.innerHTML = 'Line: Specify second point:&nbsp;';
+            return 0;
         } else if (this.points.length === 2 && !this.isComplete) {
             this.consolidateShape();
+            return 1;
         }
+        return 0;
     }
 
     updateElement(cursorPos = null) { // Called by this.handleInput, this.updateCoord, and this.consolidateShape
