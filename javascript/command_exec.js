@@ -1,4 +1,5 @@
 import { GlobalState } from './global_state.js';
+import { removeHoverHighlights } from './svg_utils.js';
 import { Line } from './shape_classes/line_class.js';
 import { Erase } from './tool_classes/erase_class.js';
 import { updateTimelineCLI, capitalizeFirstLetter, unselectShapes } from './cli_utils.js';
@@ -134,6 +135,7 @@ const commandMap = {
         console.log('Shape Map Length:', GlobalState.ShapeMap.size);
         console.log(`Undo stack: ${GlobalState.ExecutionHistory.undoStack}`);
         console.log(`Redo stack: ${GlobalState.ExecutionHistory.redoStack}`);
+        console.log(`Pending: ${GlobalState.PendingCommand}`)
     },
     'listshapes': () => { GlobalState.ShapeMap.forEach(shape => console.log(shape)) },
     'redo': () => GlobalState.ExecutionHistory.redo(),
@@ -142,7 +144,7 @@ const commandMap = {
     // 'zoom': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
 }
 
-export function processInput(input, repeat=false) { // Called primarily by submitInputCLI(inputString, repeat=false) from cli_utils.js
+export function processInput(input, repeat=false) { // Called by submitInputCLI(inputString, repeat=false) from cli_utils.js
     if (typeof input === 'string') {
         input = input.toLowerCase();
     }
@@ -177,4 +179,11 @@ export function parseCoords(input) { // if error, returns null
         console.error('Invalid input: Coordinates must be valid numbers.');
         return null;
     }
+}
+
+// Execute isSelected shape methods to indicate whether they're selected:
+export function updateObjectSelection() { // Called by mouseUp eventListener. Also called by unselectShapes() in cli_utils.js;
+    GlobalState.ShapeMap.forEach(shape => { shape.isSelected(false) });
+    GlobalState.SelectedShapes.forEach(shape => { shape.isSelected(true) });
+    removeHoverHighlights();
 }

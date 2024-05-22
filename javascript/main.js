@@ -1,6 +1,7 @@
 import { GlobalElems, GlobalState } from './global_state.js';
 import { generateMarkers, createSvgElement, updateViewBoxAspectRatio } from './svg_utils.js';
 import { } from './cli_utils.js';
+import { } from './mouse_utils.js';
 import { CommandHistory } from './command_exec.js';
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -20,4 +21,5 @@ document.addEventListener("DOMContentLoaded", () => {
     
         // console.log(GlobalState.ShapeMap);
     }
+    
 });

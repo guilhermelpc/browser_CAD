@@ -20,9 +20,7 @@ export class Erase {
 
             return null;
         } else {
-            this.pendingCmdType = null;
-
-            console.log('Objects erased: ', GlobalState.SelectedShapes);
+            this.consolidateCommand();
             return GlobalState.SelectedShapes;
         }
     }
@@ -35,6 +33,11 @@ export class Erase {
     }
 
     consolidateCommand() {
+        this.pendingCmdType = null;
+
+        resetCliInput();
+        
+        console.log('Objects erased: ', GlobalState.SelectedShapes);
     }
 
     saveState() {

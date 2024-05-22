@@ -1,6 +1,6 @@
 import { GlobalElems, GlobalState } from './global_state.js';
-import { processInput } from './command_exec.js';
-import { updateObjectSelection } from './svg_utils.js';
+import { processInput, updateObjectSelection } from './command_exec.js';
+
 
 // CLI Timeline update - adds its argument to the CLI's timeline:
 export function updateTimelineCLI(cmdString) {
@@ -9,33 +9,37 @@ export function updateTimelineCLI(cmdString) {
 }
 
 // Handles CLI input after Enter or Spacebar:
-function submitInputCLI(inputString, repeat=false) { // Called also in svg_utils.js by mousedown eventListener
+export function submitInputCli(inputCmd, repeat=false) {
     GlobalElems.CommandLine.value = '';
 
     // If not empty input, process it and early-returns:
-    if (inputString != '') { 
+    if (inputCmd != '') { 
         try {
-            processInput(inputString, repeat);
+            processInput(inputCmd, repeat);
         } catch (error) {
             console.log(`err ${error}`);
             console.log(error.message);
         }
-        return;  // Clear the input after the command is entered
-    }
-    // If empty input, but awaiting confirmation of selected objects, process and early-returns:
-    if (inputString === '' && GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType === 'coord') {
-        
-    }
-
-    // If empty input and there's command history (and not early-returned above)
-    if (inputString == '' && GlobalState.LastSuccessfulCmd) { 
-        console.log('repeat last command');
-        submitInputCLI(GlobalState.LastSuccessfulCmd, true);
         return;
     }
-
+    // If empty input, but awaiting confirmation of selected objects, process and early-returns:
+    if (inputCmd === '' && GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType === 'coord') {
+        try {
+            
+        } catch (error) {
+            console.log(`err ${error}`);
+            console.log(error.message);
+        }
+        return;
+    }
+    // If empty input and there's command history (and not early-returned above)
+    if (inputCmd == '' && GlobalState.LastSuccessfulCmd) { 
+        console.log('repeat last command');
+        submitInputCli(GlobalState.LastSuccessfulCmd, true);
+        return;
+    }
     // If empty input and there isn't history (and not early-returned above)
-    if (inputString == '' && !GlobalState.LastSuccessfulCmd) { 
+    if (inputCmd == '' && !GlobalState.LastSuccessfulCmd) { 
         return;
     }
     return;
@@ -48,6 +52,10 @@ function handleEsc() {
         GlobalState.ExecutionHistory.undo();
     }
     unselectShapes();
+
+    // Remove selection rectangle here (for canceling it easily in case the cursor gets outside during rectangle creation)
+    // ...
+
 }
 
 export function unselectShapes() {
@@ -72,7 +80,7 @@ document.addEventListener('keydown', function(event) {
     }
     if (event.key === ' ') {
         event.preventDefault(); // Prevents ' ' to be inserted into CLI
-        submitInputCLI(GlobalElems.CommandLine.value);
+        submitInputCli(GlobalElems.CommandLine.value);
         return;
     }
     if (document.activeElement !== GlobalElems.CommandLine) {
@@ -95,6 +103,6 @@ document.addEventListener('keydown', function(event) {
 // Handles Enter Key:
 GlobalElems.CommandLine.addEventListener('keypress', function(event) {
     if (event.key === 'Enter') {
-        submitInputCLI(this.value);  // Clear the input after the command is entered or fetch last command
+        submitInputCli(this.value);  // Clear the input after the command is entered or fetch last command
     }
 });
