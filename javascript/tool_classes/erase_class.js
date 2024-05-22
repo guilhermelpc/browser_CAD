@@ -4,7 +4,6 @@ import { updateTimelineCLI, resetCliInput } from '../cli_utils.js';
 
 export class Erase {
     constructor() {
-
     }
 
     handleInput(input) {

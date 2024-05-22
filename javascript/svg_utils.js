@@ -145,7 +145,7 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
 
     // Update objects display
     GlobalState.ShapeMap.forEach(shape => { shape.updateDisplayZoom(); });
-    if (GlobalState.PendingCommand) {
+    if (GlobalState.PendingCommand?.shape !== undefined) {
         GlobalState.PendingCommand.shape.updateDisplayZoom();
     }
 });
