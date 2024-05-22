@@ -9,9 +9,11 @@ export function updateTimelineCLI(cmdString) {
 }
 
 // Handles CLI input after Enter or Spacebar:
-function submitInputCLI(inputString, repeat=false) { // => command_exec.js
+function submitInputCLI(inputString, repeat=false) { // Called also in svg_utils.js by mousedown eventListener
     GlobalElems.CommandLine.value = '';
-    if (inputString != '') { // If not empty input
+
+    // If not empty input, process it and early-returns:
+    if (inputString != '') { 
         try {
             processInput(inputString, repeat);
         } catch (error) {
@@ -20,12 +22,20 @@ function submitInputCLI(inputString, repeat=false) { // => command_exec.js
         }
         return;  // Clear the input after the command is entered
     }
-    if (inputString == '' && GlobalState.LastSuccessfulCmd) { // If empty input and there's command history
+    // If empty input, but awaiting confirmation of selected objects, process and early-returns:
+    if (inputString === '' && GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType === 'coord') {
+        
+    }
+
+    // If empty input and there's command history (and not early-returned above)
+    if (inputString == '' && GlobalState.LastSuccessfulCmd) { 
         console.log('repeat last command');
         submitInputCLI(GlobalState.LastSuccessfulCmd, true);
         return;
     }
-    if (inputString == '' && !GlobalState.LastSuccessfulCmd) { // If empty input and there's no history
+
+    // If empty input and there isn't history (and not early-returned above)
+    if (inputString == '' && !GlobalState.LastSuccessfulCmd) { 
         return;
     }
     return;

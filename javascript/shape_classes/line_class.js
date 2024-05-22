@@ -12,6 +12,7 @@ export class Line {
         this.type = 'line';
         this.id = `${this.type}${++Line.lastId}`
         // Variables to be modified:
+        this.pendingCmdType = null;
         this.points = []; // List of coordinates-objects, e.g. [{ x1, y1 }, { x2, y2 }]
         this.center = null; // Coordinates { x, y } of the center of the Line. Used to place the circle marker at the middle.
         this.isComplete = false; // Set exclusively by this.consolidateShape()
@@ -31,7 +32,12 @@ export class Line {
         GlobalElems.CommandLine.placeholder = 'x,y';
     }
 
+    getExpectedInputType() {
+        return this.pendingCmdType;
+    }
+
     createShapeElement() { // Creates also one thicker line for dynamic highlighting
+        this.pendingCmdType = 'coord';
         if (!this.svgLine) {
             this.svgLineHighlight = createSvgElement('line', {
                 'stroke': 'transparent', 'stroke-width': `${GlobalState.LineWidthDisplay * GlobalState.HighlightThicknessFactor}`
@@ -47,7 +53,7 @@ export class Line {
         }
     }
 
-    handleInput(input) { // Called by command_exec.js processInput(...) -> ShapeCommand.handleInput if there's pending command
+    handleInput(input) { // Called by command_exec.js processInput(...) -> ShapeCommand.handleInput(input) if there's pending command
         let point = input; // point: { x, y } object or 'x,y' string
         if (typeof input === 'string') {
             point = parseCoords(input); // parseCoords(input) returns null for invalid input
@@ -145,6 +151,7 @@ export class Line {
 
     consolidateShape() { // Called by this.handleInput(input) and this.restoreState(state)
         this.isComplete = true;
+        this.pendingCmdType = null;
         this.center = this.returnObjectCenter(); // Bases on this.points
         this.updateElement(); // Set line coords based on this.points
         this.instantiateVisualCues(true); // Sets highlight line coords and selection grab-marks based on this.points

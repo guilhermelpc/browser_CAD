@@ -31,7 +31,7 @@ export class Erase {
         return this.pendingCmdType;
     }
 
-    handleInput(input) {
+    handleInput(input) { // Called by command_exec.js processInput(...) -> ShapeCommand.handleInput(input) if there's pending command
     }
 
     consolidateCommand() {

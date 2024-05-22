@@ -32,17 +32,22 @@ class ToolCommand {
 class ShapeCommand {
     constructor(shape) { // `shape` is object of a shape class, e.g. `new Line()`
         this.shape = shape;
+
+        this.pendingCmdType = null; // Can be 'select', 'coord', or null.
+
         this.memento = null; // Properties of shape, so it can be reconstructed with `redo`
     }
 
     execute() {
         unselectShapes();
+        this.pendingCmdType = this.shape.getExpectedInputType()
         // The shape gets started automatically when it's instantiated, and execution begins at
     }
 
     handleInput(input) { // Called by processInput if there's pending command
         this.shape.handleInput(input);
         if (this.shape.isComplete) {
+            this.pendingCmdType = null;
             GlobalState.ExecutionHistory.finishCommand(); 
         } else {
             console.log(`pending command: ${GlobalState.PendingCommand.shape.type}`);
@@ -54,16 +59,20 @@ class ShapeCommand {
     }
 
     cancel() {
+        this.pendingCmdType = null;
         this.shape.cancel();
     }
 
     undo() {
+        this.pendingCmdType = null;
         this.memento = this.shape.saveState();
+        this.pendingCmdType = null;
         this.shape.cancel();
         console.log(`${this.shape.constructor.name} cancelled/erased.`);
     }
 
     redo() {
+        this.pendingCmdType = null;
         if (this.memento.isComplete) {
             this.shape.restoreState(this.memento);
             console.log(`${this.shape.constructor.name} recreated.`);
@@ -133,7 +142,7 @@ const commandMap = {
     // 'zoom': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
 }
 
-export function processInput(input, repeat=false) {
+export function processInput(input, repeat=false) { // Called primarily by submitInputCLI(inputString, repeat=false) from cli_utils.js
     if (typeof input === 'string') {
         input = input.toLowerCase();
     }
