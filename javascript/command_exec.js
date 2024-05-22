@@ -1,5 +1,6 @@
 import { GlobalState } from './global_state.js';
 import { Line } from './shape_classes/line_class.js';
+import { Erase } from './tool_classes/erase_class.js';
 import { updateTimelineCLI, capitalizeFirstLetter, unselectShapes } from './cli_utils.js';
 
 class ToolCommand {
@@ -22,12 +23,12 @@ class ShapeCommand {
 
     execute() {
         unselectShapes();
+        // The shape gets started automatically when it's instantiated, and execution begins at
     }
 
     handleInput(input) { // Called by processInput if there's pending command
         this.shape.handleInput(input);
         if (this.shape.isComplete) {
-            GlobalState.PendingCommand = null;  // Resetting the command after completion
             GlobalState.ExecutionHistory.finishCommand(); 
         } else {
             console.log(`pending command: ${GlobalState.PendingCommand.shape.type}`);
@@ -69,6 +70,7 @@ export class CommandHistory {
     }
 
     finishCommand() { // Called by the command class when it's ready
+        GlobalState.PendingCommand = null;  // Resetting the command after completion
         this.redoStack = [];
     }
 
@@ -98,8 +100,8 @@ export class CommandHistory {
 }
 
 const commandMap = {
-    // 'e': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Erase())),
-    // 'erase': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Erase())),
+    'e': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Erase())),
+    'erase': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Erase())),
     'l': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
     'line': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
     // 'm': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Move())),
@@ -122,7 +124,7 @@ export function processInput(input, repeat=false) {
         input = input.toLowerCase();
     }
     if (GlobalState.PendingCommand) {
-        GlobalState.PendingCommand.handleInput(input);
+        GlobalState.PendingCommand.handleInput(input); // Doesn't go through ExecutionHistory. History updated by PendingCommand when finished.
     } else {
         if (input in commandMap) {
             GlobalState.LastSuccessfulCmd = input; // Memory for repeating commands in CLI

@@ -192,7 +192,11 @@ GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
 
     // If there's pending command, update it in real time, and early return for no selection to occur:
     if (GlobalState.PendingCommand) {
-        GlobalState.PendingCommand.shape.updateCoord({x,y});
+        try {
+            GlobalState.PendingCommand.shape.updateCoord({x,y});
+        } catch (error) {
+            console.log(`err ${error}`);
+        }
         return;
     }
 

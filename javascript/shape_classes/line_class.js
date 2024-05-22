@@ -15,7 +15,7 @@ export class Line {
         this.points = []; // List of coordinates-objects, e.g. [{ x1, y1 }, { x2, y2 }]
         this.center = null; // Coordinates { x, y } of the center of the Line. Used to place the circle marker at the middle.
         this.isComplete = false; // Set exclusively by this.consolidateShape()
-        this.svgLine = null; // SVG line element, set by this.createLineElement(), modified by other methods
+        this.svgLine = null; // SVG line element, set by this.createShapeElement(), modified by other methods
         this.svgLineHighlight = null; // Thicker line that gets shown to highlight element
 
         this.selectionMarks = {
@@ -24,14 +24,14 @@ export class Line {
             end: null
         };
 
-        this.createLineElement();
+        this.createShapeElement();
 
         // CLI hints:
         GlobalElems.CliPrefix.innerHTML = 'Line: Specify first point:&nbsp;';
         GlobalElems.CommandLine.placeholder = 'x,y';
     }
 
-    createLineElement() { // Creates also one thicker line for dynamic highlighting
+    createShapeElement() { // Creates also one thicker line for dynamic highlighting
         if (!this.svgLine) {
             this.svgLineHighlight = createSvgElement('line', {
                 'stroke': 'transparent', 'stroke-width': `${GlobalState.LineWidthDisplay * GlobalState.HighlightThicknessFactor}`
@@ -102,7 +102,7 @@ export class Line {
     // Consolidate coords for highlight Line, creates selection grab marks:
     instantiateVisualCues(option) {
         if (option === true) {
-            // Consolidate highlight line (instantiated by this.createLineElement()):
+            // Consolidate highlight line (instantiated by this.createShapeElement()):
             this.svgLineHighlight.setAttribute('x1', this.points[0].x);
             this.svgLineHighlight.setAttribute('y1', this.points[0].y);
             this.svgLineHighlight.setAttribute('x2', this.points[1].x);
@@ -166,7 +166,7 @@ export class Line {
     }
 
     restoreState(state) { // Called by ShapeCommand's redo() (command_exec.js)
-        this.createLineElement(); // If there's already a line element, createLineElement will only append it to the canvas
+        this.createShapeElement(); // If there's already a line element, createShapeElement will only append it to the canvas
         this.points = state.points;
         this.consolidateShape();
     }
