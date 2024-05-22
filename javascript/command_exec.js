@@ -6,12 +6,26 @@ import { updateTimelineCLI, capitalizeFirstLetter, unselectShapes } from './cli_
 class ToolCommand {
     constructor(tool) {
         this.tool = tool;
+
+        this.pendingCmdType = null; // Can be 'select', 'coord', or null.
+
         this.memento = null;
     }
-    execute() {}
-    handleInput() {}
-    cancel() {}
+
+    execute() {
+        this.pendingCmdType = this.tool.getExpectedInputType();
+    }
+
+    handleInput(input) {
+        this.tool.handleInput(input)
+    }
+
+    cancel() {
+        this.tool.cancel();
+    }
+
     undo() {}
+
     redo() {}
 }
 

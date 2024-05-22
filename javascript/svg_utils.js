@@ -145,6 +145,7 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
 
     // Update objects display
     GlobalState.ShapeMap.forEach(shape => { shape.updateDisplayZoom(); });
+    // Update pending shape command if exists:
     if (GlobalState.PendingCommand?.shape !== undefined) {
         GlobalState.PendingCommand.shape.updateDisplayZoom();
     }
@@ -161,8 +162,8 @@ GlobalElems.SvgElement.addEventListener("mousedown", function(event) {
     const x = svgPoint.x;
     const y = svgPoint.y;
 
-    // Use coords as input for any pending command, and early return:
-    if (GlobalState.PendingCommand) {
+    // Use coords as input for any pending shape command, and early return:
+    if (GlobalState.PendingCommand ) {
         processInput({x,y});
         GlobalState.SelectionCoords = null; // Resets variable so no selection is triggered by mouseup or move eventlistener
         return;
@@ -192,15 +193,28 @@ GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
 
     // If there's pending command, update it in real time, and early return for no selection to occur:
     if (GlobalState.PendingCommand) {
-        try {
-            GlobalState.PendingCommand.shape.updateCoord({x,y});
-        } catch (error) {
-            console.log(`err ${error}`);
+        // If pending shape command:
+        if (GlobalState.PendingCommand?.shape !== undefined) {
+            try {
+                GlobalState.PendingCommand.shape.updateCoord({x,y});
+            } catch (error) {
+                console.log(`err ${error}`);
+            }
+            return;
+        }
+        // If pending tool command:
+        if (GlobalState.PendingCommand?.tool !== undefined && GlobalState.PendingCommand.pendingCmdType === 'coord') {
+            try {
+                GlobalState.PendingCommand.tool.updateCoord({x,y});
+            } catch (error) {
+                console.log(`err ${error}`);
+            }
+            return;
         }
         return;
     }
 
-    // If mouse button is not being held
+    // If mouse button is not being held (and there's no pending command, as it would early-return above)
     if (!GlobalState.SelectionCoords) {
         let dists = returnDistancesToShapes(svgPoint); // List like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
         let closeShapes = []; // List like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
