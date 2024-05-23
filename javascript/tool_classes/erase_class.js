@@ -42,7 +42,7 @@ export class Erase {
     }
 
     consolidateCommand() {
-        GlobalState.SelectedShapes.forEach(shape => { 
+        this.selectedObj.forEach(shape => { 
             this.mementos.push(shape.saveState());
             shape.cancel();
         });
@@ -64,13 +64,15 @@ export class Erase {
 
     undo(state){ // State is the same object returned by this.saveState()
         console.log('undoing erase');
-        for (let i = 0; i < state.shapes.length; i++){
+        for (let i = 0; i < state.shapes.length; i++) {
             state.shapes[i].restoreState(this.mementos[i]);
         }
     }
 
     restoreState(state) { // State is the same object returned by this.saveState()
-        console.log('redoing');
+        console.log('redoing erase');
+        this.selectedObj = state.shapes;
+        this.consolidateCommand();
     }
 
     cancel() {

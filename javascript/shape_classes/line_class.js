@@ -12,13 +12,12 @@ export class Line {
         this.type = 'line';
         this.id = `${this.type}${++Line.lastId}`
         // Variables to be modified:
-        this.pendingCmdType = null;
+        this.pendingCmdType = null; // Set to 'cood' by this.createShapeElement()
         this.points = []; // List of coordinates-objects, e.g. [{ x1, y1 }, { x2, y2 }]
         this.center = null; // Coordinates { x, y } of the center of the Line. Used to place the circle marker at the middle.
         this.isComplete = false; // Set exclusively by this.consolidateShape()
         this.svgLine = null; // SVG line element, set by this.createShapeElement(), modified by other methods
         this.svgLineHighlight = null; // Thicker line that gets shown to highlight element
-
         this.selectionMarks = {
             start: null,
             mid: null,
@@ -165,7 +164,7 @@ export class Line {
         console.log(`line consolidated`);
     }
 
-    saveState() { // Called only when 'undo' is executed
+    saveState() { // Called when 'undo' is executed, and by 'erase' command class
         return { 
             points: this.points.slice(),
             isComplete: this.isComplete

@@ -84,14 +84,14 @@ document.addEventListener('keydown', function(event) {
         unselectShapes();
         // Executes undo without passing through processInput, so it's not repeatable by pressing space or enter:
         GlobalState.ExecutionHistory.undo();
-        updateTimelineCLI(`'Undo'`);
+        updateTimelineCLI(`> 'Undo'`);
         event.preventDefault(); // Prevent the default browser action
         return;
     } else if ((event.key === 'y' && (event.ctrlKey || event.metaKey)) || (event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey)) {
         unselectShapes();
         // Executes redo without passing through processInput, so it's not repeatable by pressing space or enter:
         GlobalState.ExecutionHistory.redo();
-        updateTimelineCLI(`'Redo'`);
+        updateTimelineCLI(`> 'Redo'`);
         event.preventDefault(); // Prevent the default browser action
         return;
     }

@@ -43,12 +43,15 @@ class ToolCommand {
 
     redo() {
         this.pendingCmdType = null;
+        if (this.memento.isComplete) {
+            this.tool.restoreState(this.memento);
+        }
     }
 }
 
 class ShapeCommand {
-    constructor(shape) { // `shape` is object of a shape class, e.g. `new Line()`
-        this.shape = shape;
+    constructor(shape) { 
+        this.shape = shape; // `shape` is object of a shape class, e.g. `new Line()`
 
         this.pendingCmdType = null; // Can be 'select', 'coord', or null.
 
@@ -58,7 +61,6 @@ class ShapeCommand {
     execute() {
         unselectShapes();
         this.pendingCmdType = this.shape.getExpectedInputType()
-        // The shape gets started automatically when it's instantiated, and execution begins at
     }
 
     handleInput(input) { // Called by processInput if there's pending command
@@ -84,14 +86,12 @@ class ShapeCommand {
         this.pendingCmdType = null;
         this.memento = this.shape.saveState();
         this.shape.cancel();
-        console.log(`${this.shape.constructor.name} cancelled/erased.`);
     }
 
     redo() {
         this.pendingCmdType = null;
         if (this.memento.isComplete) {
             this.shape.restoreState(this.memento);
-            console.log(`${this.shape.constructor.name} recreated.`);
         }
     }
 }
@@ -210,3 +210,4 @@ export function unselectShapes() {
     GlobalState.SelectedShapes = [];
     updateObjectSelection();
 }
+
