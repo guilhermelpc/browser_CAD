@@ -2,7 +2,7 @@ import { GlobalState } from './global_state.js';
 import { removeHoverHighlights } from './svg_utils.js';
 import { Line } from './shape_classes/line_class.js';
 import { Erase } from './tool_classes/erase_class.js';
-import { updateTimelineCLI, capitalizeFirstLetter, unselectShapes } from './cli_utils.js';
+import { updateTimelineCLI, capitalizeFirstLetter } from './cli_utils.js';
 
 class ToolCommand {
     constructor(tool) {
@@ -15,19 +15,35 @@ class ToolCommand {
 
     execute() {
         this.pendingCmdType = this.tool.getExpectedInputType();
+        if (this.pendingCmdType === null) {
+            this.tool.consolidateCommand();
+            GlobalState.ExecutionHistory.finishCommand(); 
+        }
     }
 
     handleInput(input) {
+        // if (GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType === 'select') {
+        //     this.tool.
+        // }
         this.tool.handleInput(input)
+        if (this.tool.isComplete) {
+            GlobalState.ExecutionHistory.finishCommand(); 
+        }
     }
 
     cancel() {
         this.tool.cancel();
     }
 
-    undo() {}
+    undo() {
+        console.log('undo?')
+        this.pendingCmdType = null;
+        this.memento = this.tool.saveState();
+        this.tool.undo(this.memento);
+    }
 
-    redo() {}
+    redo() {
+    }
 }
 
 class ShapeCommand {
@@ -67,7 +83,6 @@ class ShapeCommand {
     undo() {
         this.pendingCmdType = null;
         this.memento = this.shape.saveState();
-        this.pendingCmdType = null;
         this.shape.cancel();
         console.log(`${this.shape.constructor.name} cancelled/erased.`);
     }
@@ -89,8 +104,8 @@ export class CommandHistory {
 
     executeCommand(command) {
         GlobalState.PendingCommand = command;
-        GlobalState.PendingCommand.execute();
         this.undoStack.push(GlobalState.PendingCommand);
+        GlobalState.PendingCommand.execute();
     }
 
     finishCommand() { // Called by the command class when it's ready
@@ -144,7 +159,7 @@ const commandMap = {
     // 'zoom': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
 }
 
-export function processInput(input, repeat=false) { // Called by submitInputCLI(inputString, repeat=false) from cli_utils.js
+export function processInput(input, repeat=false) { // Called exclusively by submitInputCLI and submitInputMouse
     if (typeof input === 'string') {
         input = input.toLowerCase();
     }
@@ -186,4 +201,9 @@ export function updateObjectSelection() { // Called by mouseUp eventListener. Al
     GlobalState.ShapeMap.forEach(shape => { shape.isSelected(false) });
     GlobalState.SelectedShapes.forEach(shape => { shape.isSelected(true) });
     removeHoverHighlights();
+}
+
+export function unselectShapes() {
+    GlobalState.SelectedShapes = [];
+    updateObjectSelection();
 }

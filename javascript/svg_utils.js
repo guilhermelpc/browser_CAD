@@ -1,5 +1,4 @@
 import { GlobalElems, GlobalState } from './global_state.js';
-import { updateObjectSelection } from './command_exec.js';
 import { generateCircleMarker } from './svg_markers/circle_marker.js';
 import { generateSquareMarker } from './svg_markers/square_marker.js';
 

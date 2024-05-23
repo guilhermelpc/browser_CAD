@@ -1,6 +1,5 @@
 import { GlobalElems, GlobalState } from './global_state.js';
-import { processInput, updateObjectSelection } from './command_exec.js';
-
+import { processInput, unselectShapes } from './command_exec.js';
 
 // CLI Timeline update - adds its argument to the CLI's timeline:
 export function updateTimelineCLI(cmdString) {
@@ -11,7 +10,6 @@ export function updateTimelineCLI(cmdString) {
 // Handles CLI input after Enter or Spacebar:
 export function submitInputCli(inputCmd, repeat=false) {
     GlobalElems.CommandLine.value = '';
-
     // If not empty input, process it and early-returns:
     if (inputCmd != '') { 
         try {
@@ -23,9 +21,9 @@ export function submitInputCli(inputCmd, repeat=false) {
         return;
     }
     // If empty input, but awaiting confirmation of selected objects, process and early-returns:
-    if (inputCmd === '' && GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType === 'coord') {
+    if (inputCmd === '' && GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType === 'select') {
         try {
-            
+            processInput(null);
         } catch (error) {
             console.log(`err ${error}`);
             console.log(error.message);
@@ -33,7 +31,7 @@ export function submitInputCli(inputCmd, repeat=false) {
         return;
     }
     // If empty input and there's command history (and not early-returned above)
-    if (inputCmd == '' && GlobalState.LastSuccessfulCmd) { 
+    if (inputCmd == '' && GlobalState.LastSuccessfulCmd && !GlobalState.PendingCommand) { 
         console.log('repeat last command');
         submitInputCli(GlobalState.LastSuccessfulCmd, true);
         return;
@@ -56,11 +54,6 @@ function handleEsc() {
     // Remove selection rectangle here (for canceling it easily in case the cursor gets outside during rectangle creation)
     // ...
 
-}
-
-export function unselectShapes() {
-    GlobalState.SelectedShapes = [];
-    updateObjectSelection();
 }
 
 export function resetCliInput() {
