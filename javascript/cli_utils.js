@@ -68,28 +68,41 @@ export function capitalizeFirstLetter(string) {
 
 // Automatic CLI focus, spacebar handler, esc handler, ctrl+z and related:
 document.addEventListener('keydown', function(event) {
+    // Early return:
     if(event.key === 'Escape') {
         handleEsc();
+        return;
     }
+    // Prevent ' ' to be inserted into CLI, and early-return:
     if (event.key === ' ') {
-        event.preventDefault(); // Prevents ' ' to be inserted into CLI
+        event.preventDefault();
         submitInputCli(GlobalElems.CommandLine.value);
         return;
     }
+    // 'Undo' and 'Redo' commands shortcuts, with early return:
+    if (event.key === 'z' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
+        unselectShapes();
+        // Executes undo without passing through processInput, so it's not repeatable by pressing space or enter:
+        GlobalState.ExecutionHistory.undo();
+        updateTimelineCLI(`'Undo'`);
+        event.preventDefault(); // Prevent the default browser action
+        return;
+    } else if ((event.key === 'y' && (event.ctrlKey || event.metaKey)) || (event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey)) {
+        unselectShapes();
+        // Executes redo without passing through processInput, so it's not repeatable by pressing space or enter:
+        GlobalState.ExecutionHistory.redo();
+        updateTimelineCLI(`'Redo'`);
+        event.preventDefault(); // Prevent the default browser action
+        return;
+    }
+
     if (document.activeElement !== GlobalElems.CommandLine) {
         GlobalElems.CommandLine.focus();
     }
 
-    if (event.key === 'z' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
-        unselectShapes();
-        GlobalState.ExecutionHistory.undo();
-        updateTimelineCLI(`'Undo'`);
-        event.preventDefault(); // Prevent the default browser action
-    } else if ((event.key === 'y' && (event.ctrlKey || event.metaKey)) || (event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey)) {
-        unselectShapes();
-        GlobalState.ExecutionHistory.redo();
-        updateTimelineCLI(`'Redo'`);
-        event.preventDefault(); // Prevent the default browser action
+    // Delete with backspace funcionality:
+    if (event.key === 'Backspace' || event.key === 'Delete') {
+        
     }
 });
 

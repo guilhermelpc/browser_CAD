@@ -36,13 +36,13 @@ class ToolCommand {
     }
 
     undo() {
-        console.log('undo?')
         this.pendingCmdType = null;
         this.memento = this.tool.saveState();
         this.tool.undo(this.memento);
     }
 
     redo() {
+        this.pendingCmdType = null;
     }
 }
 
@@ -159,16 +159,19 @@ const commandMap = {
     // 'zoom': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
 }
 
-export function processInput(input, repeat=false) { // Called exclusively by submitInputCLI and submitInputMouse
+// Called by submitInputCLI and submitInputMouse, and by keyboard eventlistener shortcuts.
+// The 'repeat' arg is just for a different text on the CLI.
+export function processInput(input, repeat=false) {
     if (typeof input === 'string') {
         input = input.toLowerCase();
     }
+
     if (GlobalState.PendingCommand) {
         GlobalState.PendingCommand.handleInput(input); // Doesn't go through ExecutionHistory. History updated by PendingCommand when finished.
     } else {
         if (input in commandMap) {
             GlobalState.LastSuccessfulCmd = input; // Memory for repeating commands in CLI
-            repeat ? updateTimelineCLI(`Repeating last command: '${capitalizeFirstLetter(input)}'`) : updateTimelineCLI(`'${capitalizeFirstLetter(input)}'`);
+            repeat ? updateTimelineCLI(`> Repeating last command: '${capitalizeFirstLetter(input)}'`) : updateTimelineCLI(`> '${capitalizeFirstLetter(input)}'`);
             commandMap[input]();
         } else {
             console.error('Invalid command:', input);

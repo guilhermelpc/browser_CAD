@@ -9,7 +9,7 @@ export class Erase {
         // To be modified:
         this.isComplete = false; // Set exclusively by this.consolidateCommand()
         this.pendingCmdType = null; // Modif. by this.getShapesSelected() and this.consolidateCommand()
-        this.selectedObj = null; // null if no selection when `new Erase` is instantiated
+        this.selectedObj = []; // null if no selection when `new Erase` is instantiated
         this.mementos = [];
         this.getShapesSelection();
     }
@@ -23,8 +23,7 @@ export class Erase {
             GlobalElems.CliPrefix.innerHTML = 'Erase: Select objects to erase.';
             GlobalElems.CommandLine.placeholder = '';
 
-            this.selectedObj = null;
-            return
+            this.selectedObj = [];
         } else {
             this.selectedObj = GlobalState.SelectedShapes;
             this.consolidateCommand();
@@ -36,8 +35,8 @@ export class Erase {
     }
 
     handleInput(input) { // Called by command_exec.js processInput(...) -> ToolCommand.handleInput(input) if there's pending command
-        this.selectedObj = this.getShapesSelection();
-        if (this.selectedObj !== null) {
+        this.selectedObj = GlobalState.SelectedShapes;
+        if (this.selectedObj.length !== 0) {
             this.consolidateCommand();
         }
     }
@@ -55,7 +54,7 @@ export class Erase {
         resetCliInput();
     }
 
-    saveState() { // Called only when 'undo' is executed
+    saveState() { // Called when 'undo' is executed
         return {
             shapes: this.selectedObj.slice(),
             mementos: this.mementos.slice(),
@@ -63,7 +62,7 @@ export class Erase {
         }
     }
 
-    undo(state){
+    undo(state){ // State is the same object returned by this.saveState()
         console.log('undoing erase');
         for (let i = 0; i < state.shapes.length; i++){
             state.shapes[i].restoreState(this.mementos[i]);
@@ -77,5 +76,4 @@ export class Erase {
     cancel() {
         resetCliInput();
     }
-
 }
