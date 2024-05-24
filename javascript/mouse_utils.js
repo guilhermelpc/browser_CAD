@@ -1,6 +1,6 @@
 import { GlobalElems, GlobalState } from './global_state.js';
 import { processInput, updateObjectSelection } from './command_exec.js';
-import { updateStyleZoom, removeHoverHighlights } from './svg_utils.js'
+import { removeHoverHighlights, applyZoom } from './svg_utils.js'
 
 // Handles command input called by click:
 function submitInputMouse(inputCmd, repeat=false) {
@@ -45,7 +45,7 @@ GlobalElems.SvgElement.addEventListener("mousedown", function(event) {
     const y = svgPoint.y;
 
     // Use coords as input for any pending shape 'coord' command, and early returns if it exists:
-    if (GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType === 'coord') {
+    if (GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType.includes('coord')) {
         submitInputMouse({x,y});
         GlobalState.SelectionCoords = null; // Resets variable so no selection is triggered by mouseup or move eventlistener
         return;
@@ -70,16 +70,13 @@ GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
     const y = svgPoint.y;
 
     // If there's pending command, update it in real time, and early return for no selection to occur:
-    if (GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType === 'coord') {
-        // If pending shape command:
-        if (GlobalState.PendingCommand.pendingCmdType === 'coord') {
-            try {
-                GlobalState.PendingCommand.shape.updateCoord({x,y});
-            } catch (error) {
-                console.log(`err ${error}`);
-            }
-            return;
+    if (GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType.includes('coord')) {
+        try {
+            GlobalState.PendingCommand.shape.updateCoord({x,y});
+        } catch (error) {
+            console.log(`err ${error}`);
         }
+        return;
     }
     // If mouse button is not being held (and there's no pending 'coord' command, as it would early-return above),
     // highlight close objects:
@@ -153,7 +150,7 @@ GlobalElems.SvgElement.addEventListener('contextmenu', function(event) {
     cliInput.focus(); // Ensure the CLI input remains focused
 });
 
-// Zoom functionality:
+// Scroll (zoom) functionality:
 GlobalElems.SvgElement.addEventListener('wheel', function(event) {
     event.preventDefault();  // Prevent the page from scrolling
     const cursorPointPreZoom = getCursorCoords(event, GlobalElems.SvgElement);
@@ -180,22 +177,5 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
         newY = GlobalState.ZoomCoords.y - (GlobalState.ZoomCoords.y - GlobalState.ViewBox.y) * (dynamScaleFactor);
     }
 
-    GlobalState.ViewBox.x = newX;
-    GlobalState.ViewBox.y = newY;
-    GlobalState.ViewBox.width = newWidth;
-    GlobalState.ViewBox.height = newHeight;
-
-    // Update the SVG's viewBox attribute to apply the zoom
-    GlobalElems.SvgElement.setAttribute('viewBox', `${GlobalState.ViewBox.x} ${GlobalState.ViewBox.y} 
-        ${GlobalState.ViewBox.width} ${GlobalState.ViewBox.height}`);
-
-    // Scale dependent values updated:
-    updateStyleZoom();
-
-    // Update objects display
-    GlobalState.ShapeMap.forEach(shape => { shape.updateDisplayZoom(); });
-    // Update pending shape command if exists:
-    if (GlobalState.PendingCommand?.shape !== undefined) {
-        GlobalState.PendingCommand.shape.updateDisplayZoom();
-    }
+    applyZoom(newX, newY, newWidth,newHeight);
 });

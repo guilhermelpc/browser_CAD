@@ -8,16 +8,16 @@ export class Erase {
         this.type = 'erase';
         // To be modified:
         this.isComplete = false; // Set exclusively by this.consolidateCommand()
-        this.pendingCmdType = null; // Modif. by this.getShapesSelected() and this.consolidateCommand()
+        this.pendingCmdType = [null]; // Modif. by this.getShapesSelected() and this.consolidateCommand()
         this.selectedObj = []; // null if no selection when `new Erase` is instantiated
         this.mementos = [];
         this.getShapesSelection();
     }
 
-    getShapesSelection() { // Called by this class' constructor
+    getShapesSelection() { // Called by constructor
         // If there aren't any selected objects:
         if (Array.isArray(GlobalState.SelectedShapes) && GlobalState.SelectedShapes.length === 0) {
-            this.pendingCmdType = 'select';
+            this.pendingCmdType = ['select'];
             
             // CLI hints:
             GlobalElems.CliPrefix.innerHTML = 'Erase: Select objects to erase.';
@@ -30,11 +30,11 @@ export class Erase {
         }
     }
 
-    getExpectedInputType() {
-        return this.pendingCmdType;
-    }
-
     handleInput(input) { // Called by command_exec.js processInput(...) -> ToolCommand.handleInput(input) if there's pending command
+        if (input !== null) {
+            updateTimelineCLI(`Unexpected input: '${input}'`);
+            return;
+        }
         this.selectedObj = GlobalState.SelectedShapes;
         if (this.selectedObj.length !== 0) {
             this.consolidateCommand();
@@ -46,11 +46,12 @@ export class Erase {
             this.mementos.push(shape.saveState());
             shape.cancel();
         });
-        unselectShapes();
         this.pendingCmdType = null;
         this.isComplete = true;
-        console.log('Objects erased: ', this.selectedObj);
-
+        
+        console.log('Object(s) erased: ', this.selectedObj);
+        updateTimelineCLI(`${this.selectedObj.length} object(s) erased`);
+        unselectShapes();
         resetCliInput();
     }
 
@@ -63,19 +64,18 @@ export class Erase {
     }
 
     undo(state){ // State is the same object returned by this.saveState()
-        console.log('undoing erase');
         for (let i = 0; i < state.shapes.length; i++) {
             state.shapes[i].restoreState(this.mementos[i]);
         }
     }
 
     restoreState(state) { // State is the same object returned by this.saveState()
-        console.log('redoing erase');
         this.selectedObj = state.shapes;
         this.consolidateCommand();
     }
 
     cancel() {
+        updateTimelineCLI(`'Erase' cancelled`);
         resetCliInput();
     }
 }

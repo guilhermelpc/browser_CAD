@@ -12,16 +12,16 @@ export function submitInputCli(inputCmd, repeat=false) {
     GlobalElems.CommandLine.value = '';
     // If not empty input, process it and early-returns:
     if (inputCmd != '') { 
-        try {
+        // try {
             processInput(inputCmd, repeat);
-        } catch (error) {
-            console.log(`err ${error}`);
-            console.log(error.message);
-        }
+        // } catch (error) {
+        //     console.log(`err ${error}`);
+        //     console.log(error.message);
+        // }
         return;
     }
     // If empty input, but awaiting confirmation of selected objects, process and early-returns:
-    if (inputCmd === '' && GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType === 'select') {
+    if (inputCmd === '' && GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType.includes('select')) {
         try {
             processInput(null);
         } catch (error) {

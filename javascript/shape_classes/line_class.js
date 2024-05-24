@@ -12,7 +12,7 @@ export class Line {
         this.type = 'line';
         this.id = `${this.type}${++Line.lastId}`
         // Variables to be modified:
-        this.pendingCmdType = null; // Set to 'cood' by this.createShapeElement()
+        this.pendingCmdType = [null]; // Set to 'cood' by this.createShapeElement()
         this.points = []; // List of coordinates-objects, e.g. [{ x1, y1 }, { x2, y2 }]
         this.center = null; // Coordinates { x, y } of the center of the Line. Used to place the circle marker at the middle.
         this.isComplete = false; // Set exclusively by this.consolidateShape()
@@ -31,12 +31,8 @@ export class Line {
         GlobalElems.CommandLine.placeholder = 'x,y';
     }
 
-    getExpectedInputType() {
-        return this.pendingCmdType;
-    }
-
     createShapeElement() { // Creates also one thicker line for dynamic highlighting
-        this.pendingCmdType = 'coord';
+        this.pendingCmdType = ['coord'];
         if (!this.svgLine) {
             this.svgLineHighlight = createSvgElement('line', {
                 'stroke': 'transparent', 'stroke-width': `${GlobalState.LineWidthDisplay * GlobalState.HighlightThicknessFactor}`
@@ -150,7 +146,7 @@ export class Line {
 
     consolidateShape() { // Called by this.handleInput(input) and this.restoreState(state)
         this.isComplete = true;
-        this.pendingCmdType = null;
+        this.pendingCmdType = [null];
         this.center = this.returnObjectCenter(); // Bases on this.points
         this.updateElement(); // Set line coords based on this.points
         this.instantiateVisualCues(true); // Sets highlight line coords and selection grab-marks based on this.points
@@ -255,5 +251,17 @@ export class Line {
         const distance = Math.sqrt(dx * dx + dy * dy);
     
         return distance;
+    }
+ 
+    getCoordExtents() { // Called by zoomAll() in svg_utils.js:
+        let xMin = Math.min(this.points[0].x, this.points[1].x);
+        let yMin = Math.min(this.points[0].y, this.points[1].y);
+        let xMax = Math.max(this.points[0].x, this.points[1].x);
+        let yMax = Math.max(this.points[0].y, this.points[1].y);
+
+        return [
+          { xMin: xMin, yMin: yMin },
+          { xMax: xMax, yMax: yMax }
+        ];
     }
 }

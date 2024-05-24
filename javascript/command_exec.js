@@ -2,30 +2,25 @@ import { GlobalState } from './global_state.js';
 import { removeHoverHighlights } from './svg_utils.js';
 import { Line } from './shape_classes/line_class.js';
 import { Erase } from './tool_classes/erase_class.js';
+import { Zoom } from './tool_classes/zoom_class.js';
 import { updateTimelineCLI, capitalizeFirstLetter } from './cli_utils.js';
 
 class ToolCommand {
     constructor(tool) {
         this.tool = tool;
-
-        this.pendingCmdType = null; // Can be 'select', 'coord', or null.
-
+        this.pendingCmdType = [null]; // Can include 'select', 'coord', 'string', 'multiple', 'viewbox' or null. Used by submitInputCli(), and by mouseDown functionality;
         this.memento = null;
     }
 
     execute() {
-        this.pendingCmdType = this.tool.getExpectedInputType();
-        if (this.pendingCmdType === null) {
-            this.tool.consolidateCommand();
+        this.pendingCmdType = this.tool.pendingCmdType;
+        if (this.tool.isComplete) {
             GlobalState.ExecutionHistory.finishCommand(); 
         }
     }
 
     handleInput(input) {
-        // if (GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType === 'select') {
-        //     this.tool.
-        // }
-        this.tool.handleInput(input)
+        this.tool.handleInput(input);
         if (this.tool.isComplete) {
             GlobalState.ExecutionHistory.finishCommand(); 
         }
@@ -36,13 +31,13 @@ class ToolCommand {
     }
 
     undo() {
-        this.pendingCmdType = null;
+        this.pendingCmdType = [null];
         this.memento = this.tool.saveState();
         this.tool.undo(this.memento);
     }
 
     redo() {
-        this.pendingCmdType = null;
+        this.pendingCmdType = [null];
         if (this.memento.isComplete) {
             this.tool.restoreState(this.memento);
         }
@@ -53,20 +48,20 @@ class ShapeCommand {
     constructor(shape) { 
         this.shape = shape; // `shape` is object of a shape class, e.g. `new Line()`
 
-        this.pendingCmdType = null; // Can be 'select', 'coord', or null.
+        this.pendingCmdType = [null]; // Can include 'select', 'coord', 'string', 'multiple', 'viewbox' or null. Used by submitInputCli(), and by mouseDown functionality;
 
         this.memento = null; // Properties of shape, so it can be reconstructed with `redo`
     }
 
     execute() {
         unselectShapes();
-        this.pendingCmdType = this.shape.getExpectedInputType()
+        this.pendingCmdType = this.shape.pendingCmdType;
     }
 
     handleInput(input) { // Called by processInput if there's pending command
         this.shape.handleInput(input);
         if (this.shape.isComplete) {
-            this.pendingCmdType = null;
+            this.pendingCmdType = [null];
             GlobalState.ExecutionHistory.finishCommand(); 
         } else {
             console.log(`pending command: ${GlobalState.PendingCommand.shape.type}`);
@@ -78,18 +73,18 @@ class ShapeCommand {
     }
 
     cancel() {
-        this.pendingCmdType = null;
+        this.pendingCmdType = [null];
         this.shape.cancel();
     }
 
     undo() {
-        this.pendingCmdType = null;
+        this.pendingCmdType = [null];
         this.memento = this.shape.saveState();
         this.shape.cancel();
     }
 
     redo() {
-        this.pendingCmdType = null;
+        this.pendingCmdType = [null];
         if (this.memento.isComplete) {
             this.shape.restoreState(this.memento);
         }
@@ -113,18 +108,18 @@ export class CommandHistory {
         this.redoStack = [];
     }
 
+    // Undo also works as cancel pending command:
     undo() { // Also called by 'Escape' key (cancel if pending command)
-        const command = this.undoStack.pop();
-
-        if (command) {
-            // If there's no pending command, undo history:
-            if (!GlobalState.PendingCommand) { 
-                this.redoStack.push(command);
-                command.undo();
+        const lastCommand = this.undoStack.pop();
+        if (lastCommand) {
             // if there's pending command, just cancel it:
-            } else { 
-                command.cancel();
+            if (GlobalState.PendingCommand) { 
+                lastCommand.cancel();
                 GlobalState.PendingCommand = null;
+            } else { 
+                // If there's no pending command, undo history:
+                this.redoStack.push(lastCommand);
+                lastCommand.undo();
             }
         }
     }
@@ -155,8 +150,8 @@ const commandMap = {
     'listshapes': () => { GlobalState.ShapeMap.forEach(shape => console.log(shape)) },
     'redo': () => GlobalState.ExecutionHistory.redo(),
     'undo': () => GlobalState.ExecutionHistory.undo(),
-    // 'z': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
-    // 'zoom': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
+    'z': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
+    'zoom': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
 }
 
 // Called by submitInputCLI and submitInputMouse, and by keyboard eventlistener shortcuts.
@@ -164,6 +159,7 @@ const commandMap = {
 export function processInput(input, repeat=false) {
     if (typeof input === 'string') {
         input = input.toLowerCase();
+        console.log('input', input)
     }
 
     if (GlobalState.PendingCommand) {

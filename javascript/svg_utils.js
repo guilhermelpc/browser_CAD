@@ -67,6 +67,13 @@ export function updateStyleZoom() { // Called by updateViewBoxAspectRatio and sc
     GlobalElems.SquareReusableElement.setAttribute("height", `${markWidth * GlobalState.LineWidthDisplay}`);
     GlobalElems.SquareReusableElement.setAttribute("x", `${-markWidth * GlobalState.LineWidthDisplay / 2}`);
     GlobalElems.SquareReusableElement.setAttribute("y", `${-markWidth * GlobalState.LineWidthDisplay / 2}`);
+
+    // Update objects display
+    GlobalState.ShapeMap.forEach(shape => { shape.updateDisplayZoom(); });
+    // Update pending shape command if exists:
+    if (GlobalState.PendingCommand?.shape !== undefined) {
+        GlobalState.PendingCommand.shape.updateDisplayZoom();
+    }
 }
 
 export function removeHoverHighlights() {
@@ -80,3 +87,55 @@ export function removeHoverHighlights() {
     }
 } 
 
+export function applyZoom(newX, newY, newWidth, newHeight) {
+    GlobalState.ViewBox.x = newX;
+    GlobalState.ViewBox.y = newY;
+    GlobalState.ViewBox.width = newWidth;
+    GlobalState.ViewBox.height = newHeight;
+
+    // Update the SVG's viewBox attribute to apply the zoom
+    GlobalElems.SvgElement.setAttribute('viewBox', `${GlobalState.ViewBox.x} ${GlobalState.ViewBox.y} 
+        ${GlobalState.ViewBox.width} ${GlobalState.ViewBox.height}`);
+
+    // Scale dependent values updated:
+    updateStyleZoom();
+}
+
+export function zoomAll() {
+    // Early return if no object exists:
+    if (GlobalState.ShapeMap.size === 0) { return; }
+
+    let globalXMin = Infinity;
+    let globalYMin = Infinity;
+    let globalXMax = -Infinity;
+    let globalYMax = -Infinity;
+
+    let zommExtents = [{x:-1, y:-1}, {x:1, y:1}]; // [{xMin, yMin}, {xMax, yMax}]
+    GlobalState.ShapeMap.forEach(shape => {
+        const shapeExtents = shape.getCoordExtents();
+        const { xMin, yMin } = shapeExtents[0];
+        const { xMax, yMax } = shapeExtents[1];
+
+        if (xMin < globalXMin) globalXMin = xMin;
+        if (yMin < globalYMin) globalYMin = yMin;
+        if (xMax > globalXMax) globalXMax = xMax;
+        if (yMax > globalYMax) globalYMax = yMax;
+    });
+
+    updateViewBoxAspectRatio(GlobalState.ViewBox, GlobalElems.SvgElement);
+
+    let newWidth = globalXMax - globalXMin;
+    let newHeight = globalYMax - globalYMin;
+
+    if (newWidth / newHeight >= GlobalState.AspectRatio) { // If new height is too small, correct it:
+        newHeight = newWidth / GlobalState.AspectRatio;
+        const diff = newHeight - (globalYMax - globalYMin);
+        const newY = globalYMin - diff / 2;
+        applyZoom(globalXMin, newY, newWidth, newHeight);
+    } else {
+        newWidth = newHeight * GlobalState.AspectRatio;
+        const diff = newWidth - (globalXMax - globalXMin);
+        const newX = globalXMin - diff / 2;
+        applyZoom(newX, globalYMin, newWidth, newHeight);
+    }
+}
