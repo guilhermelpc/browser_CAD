@@ -102,7 +102,9 @@ document.addEventListener('keydown', function(event) {
 
     // Delete with backspace funcionality:
     if (event.key === 'Backspace' || event.key === 'Delete') {
-        
+        // Applies the 'erase' commmand, but only if there are shapes already selected:
+        if (GlobalState.SelectedShapes.length === 0) { return; }
+        submitInputCli('erase', false)
     }
 });
 

@@ -127,12 +127,24 @@ export function zoomAll() {
     let newWidth = globalXMax - globalXMin;
     let newHeight = globalYMax - globalYMin;
 
-    if (newWidth / newHeight >= GlobalState.AspectRatio) { // If new height is too small, correct it:
+    const extraZFactor = 1.03; // Extra zooming so objects dont lie exactly on the edge of screen\
+
+    // If new height is too small for aspect ratio, correct it:
+    if (newWidth / newHeight >= GlobalState.AspectRatio) { 
+        // Applying first the extra zoom factor
+        globalXMin -= newWidth * (extraZFactor - 1) / 2;
+        newWidth = newWidth * extraZFactor;
+
         newHeight = newWidth / GlobalState.AspectRatio;
         const diff = newHeight - (globalYMax - globalYMin);
         const newY = globalYMin - diff / 2;
         applyZoom(globalXMin, newY, newWidth, newHeight);
-    } else {
+        // Else, correct width:
+    } else { 
+        // Applying first the extra zoom factor
+        globalYMin -= newHeight * (extraZFactor - 1) / 2;
+        newHeight = newHeight * extraZFactor;
+
         newWidth = newHeight * GlobalState.AspectRatio;
         const diff = newWidth - (globalXMax - globalXMin);
         const newX = globalXMin - diff / 2;
