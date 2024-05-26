@@ -1,7 +1,7 @@
 import { GlobalElems, GlobalState } from '../global_state.js';
 import { updateTimelineCLI, resetCliInput } from '../cli_utils.js';
 import { unselectShapes } from '../command_exec.js';
-import { zoomAll } from '../svg_utils.js';
+import { applyZoom, zoomAll } from '../svg_utils.js';
 
 export class Zoom {
     constructor() {
@@ -10,7 +10,8 @@ export class Zoom {
         // To be modified:
         this.isComplete = false;
         this.pendingCmdType = ['string', 'viewbox'];
-            
+        this.beforeZoom = { x: null, y: null, width: null, height: null }; // Set only when command is executed, bc initial params might be changed by scroll-zoom
+        this.afterZoom = { x: null, y: null, width: null, height: null };
         // CLI hints:
         GlobalElems.CliPrefix.innerHTML = 'Zoom [All] or: Select area for zooming&nbsp;';
         GlobalElems.CommandLine.placeholder = '';
@@ -19,7 +20,14 @@ export class Zoom {
     handleInput(input) {
         if (typeof input === 'string') {
             if (input === 'a') {
-                zoomAll(); // from '../svg_utils.js'
+                // Save previous zoom state for undoing
+                this.beforeZoom = {
+                    x: GlobalState.ViewBox.x,
+                    y: GlobalState.ViewBox.y,
+                    width: GlobalState.ViewBox.width,
+                    height: GlobalState.ViewBox.height
+                }
+                this.afterZoom = zoomAll(); // from '../svg_utils.js'
                 this.consolidateCommand();
                 return;
             } else {
@@ -41,12 +49,20 @@ export class Zoom {
     }
 
     saveState() {
+        return {
+            isComplete: this.isComplete,
+            beforeZoom: this.beforeZoom,
+            afterZoom: this.afterZoom
+        };
     }
 
     undo(state) {
+        applyZoom(state.beforeZoom.x, state.beforeZoom.y, state.beforeZoom.width, state.beforeZoom.height);
     }
 
     restoreState(state) {
+        applyZoom(state.afterZoom.x, state.afterZoom.y, state.afterZoom.width, state.afterZoom.height);
+        this.consolidateCommand();
     }
 
     cancel() {

@@ -202,7 +202,7 @@ export class Line {
     }
 
     // Show/hide grab-marks
-    isSelected(option) { // Called by updateObjectSelection (svg_utils.js)
+    isSelected(option) { // Called by updateObjectSelection (command_exec.js)
         if (option === true) {
             Object.keys(this.selectionMarks).forEach(key => { 
                 this.selectionMarks[key].setAttribute("fill", `${GlobalState.GrabMarkCokor}`);

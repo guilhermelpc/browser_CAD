@@ -159,7 +159,6 @@ const commandMap = {
 export function processInput(input, repeat=false) {
     if (typeof input === 'string') {
         input = input.toLowerCase();
-        console.log('input', input)
     }
 
     if (GlobalState.PendingCommand) {
@@ -196,9 +195,12 @@ export function parseCoords(input) { // if error, returns null
 }
 
 // Execute isSelected shape methods to indicate whether they're selected:
-export function updateObjectSelection() { // Called by mouseUp eventListener. Also called by unselectShapes() in cli_utils.js;
-    GlobalState.ShapeMap.forEach(shape => { shape.isSelected(false) });
-    GlobalState.SelectedShapes.forEach(shape => { shape.isSelected(true) });
+export function updateObjectSelection() { // Called by mouseUp eventListener. Also called by unselectShapes();
+    // First reset all highlights:
+    GlobalState.ShapeMap.forEach(shape => { shape.isSelected(false) }); 
+    // Then activate only on the ones that are in GlobalState.SelectedShapes:
+    GlobalState.SelectedShapes.forEach(shape => { shape.isSelected(true) }); 
+
     removeHoverHighlights();
 }
 

@@ -1,5 +1,5 @@
 import { GlobalElems, GlobalState } from './global_state.js';
-import { processInput, unselectShapes } from './command_exec.js';
+import { processInput, unselectShapes, updateObjectSelection } from './command_exec.js';
 
 // CLI Timeline update - adds its argument to the CLI's timeline:
 export function updateTimelineCLI(cmdString) {
@@ -66,20 +66,20 @@ export function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// Automatic CLI focus, spacebar handler, esc handler, ctrl+z and related:
+// Keyboard event listener:
 document.addEventListener('keydown', function(event) {
-    // Early return:
+    // Esc functionality:
     if(event.key === 'Escape') {
         handleEsc();
         return;
     }
-    // Prevent ' ' to be inserted into CLI, and early-return:
-    if (event.key === ' ') {
+    // Spacebar and enter are equivalent:
+    if (event.key === ' ' || event.key === 'Enter') {
         event.preventDefault();
         submitInputCli(GlobalElems.CommandLine.value);
         return;
     }
-    // 'Undo' and 'Redo' commands shortcuts, with early return:
+    // 'Undo' command shortcuts -- Ctrl + Z, Cmd + Z:
     if (event.key === 'z' && (event.ctrlKey || event.metaKey) && !event.shiftKey) {
         unselectShapes();
         // Executes undo without passing through processInput, so it's not repeatable by pressing space or enter:
@@ -87,7 +87,9 @@ document.addEventListener('keydown', function(event) {
         updateTimelineCLI(`> 'Undo'`);
         event.preventDefault(); // Prevent the default browser action
         return;
-    } else if ((event.key === 'y' && (event.ctrlKey || event.metaKey)) || (event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey)) {
+    }
+    // 'Redo' command shortcuts -- Ctrl+Y, Ctrl+Shift+Z, and also works with metaKey (Command Key on Mac) instead of Ctrl:
+    if ((event.key === 'y' && (event.ctrlKey || event.metaKey)) || (event.key === 'z' && (event.ctrlKey || event.metaKey) && event.shiftKey)) {
         unselectShapes();
         // Executes redo without passing through processInput, so it's not repeatable by pressing space or enter:
         GlobalState.ExecutionHistory.redo();
@@ -95,22 +97,23 @@ document.addEventListener('keydown', function(event) {
         event.preventDefault(); // Prevent the default browser action
         return;
     }
-
-    if (document.activeElement !== GlobalElems.CommandLine) {
-        GlobalElems.CommandLine.focus();
+    // Select All funcionality -- Ctrl + A or Cmd + A:
+    if (event.key === 'a' && (event.ctrlKey || event.metaKey && !event.shiftKey)) {
+        GlobalState.ShapeMap.forEach(shape => {
+            if (!GlobalState.SelectedShapes.includes(shape)) {
+                GlobalState.SelectedShapes.push(shape);
+            }
+        });
+        updateObjectSelection();
     }
-
-    // Delete with backspace funcionality:
+    // Backspace acts as erase:
     if (event.key === 'Backspace' || event.key === 'Delete') {
         // Applies the 'erase' commmand, but only if there are shapes already selected:
         if (GlobalState.SelectedShapes.length === 0) { return; }
         submitInputCli('erase', false)
     }
-});
-
-// Handles Enter Key:
-GlobalElems.CommandLine.addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
-        submitInputCli(this.value);  // Clear the input after the command is entered or fetch last command
+    // Autofocus on CLI:
+    if (document.activeElement !== GlobalElems.CommandLine) {
+        GlobalElems.CommandLine.focus();
     }
 });

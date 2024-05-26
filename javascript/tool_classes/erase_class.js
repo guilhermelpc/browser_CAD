@@ -60,7 +60,7 @@ export class Erase {
             shapes: this.selectedObj.slice(),
             mementos: this.mementos.slice(),
             isComplete: this.isComplete
-        }
+        };
     }
 
     undo(state){ // State is the same object returned by this.saveState()

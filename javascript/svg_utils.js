@@ -75,7 +75,7 @@ export function updateStyleZoom() { // Called by updateViewBoxAspectRatio and sc
         GlobalState.PendingCommand.shape.updateDisplayZoom();
     }
 }
-
+// Removes highlights, except on selected shapes:
 export function removeHoverHighlights() {
     try {
         GlobalState.ShapeMap.forEach(shape => { shape.highlightObject(false) });
@@ -134,20 +134,25 @@ export function zoomAll() {
         // Applying first the extra zoom factor
         globalXMin -= newWidth * (extraZFactor - 1) / 2;
         newWidth = newWidth * extraZFactor;
-
+        // Correcting height with aspect ratio:
         newHeight = newWidth / GlobalState.AspectRatio;
         const diff = newHeight - (globalYMax - globalYMin);
         const newY = globalYMin - diff / 2;
         applyZoom(globalXMin, newY, newWidth, newHeight);
+        // Return params so they can be stored in Zoom tool class for undo/redo:
+        return { x: globalXMin, y: newY, width: newWidth, height: newHeight };
+
         // Else, correct width:
     } else { 
         // Applying first the extra zoom factor
         globalYMin -= newHeight * (extraZFactor - 1) / 2;
         newHeight = newHeight * extraZFactor;
-
+        // Correcting width with aspect ratio:
         newWidth = newHeight * GlobalState.AspectRatio;
         const diff = newWidth - (globalXMax - globalXMin);
         const newX = globalXMin - diff / 2;
         applyZoom(newX, globalYMin, newWidth, newHeight);
+        // Return params so they can be stored in Zoom tool class for undo/redo:
+        return { x: newX, y: globalYMin, width: newWidth, height: newHeight };
     }
 }
