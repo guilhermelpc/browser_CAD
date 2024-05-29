@@ -1,7 +1,7 @@
 import { GlobalElems, GlobalState } from '../global_state.js';
-import { createSvgElement } from '../svg_utils.js';
-import { parseCoords } from '../command_exec.js';
-import { updateTimelineCLI, resetCliInput } from '../cli_utils.js';
+import { createSvgElement } from '../01_utils/svg_utils.js';
+import { parseCoords } from '../01_utils/command_exec.js';
+import { updateTimelineCLI, resetCliInput } from '../01_utils/cli_utils.js';
 
 export class Line {
     static lastId = 0;
@@ -156,8 +156,6 @@ export class Line {
         resetCliInput();
 
         this.updateDisplayZoom();
-
-        console.log(`line consolidated`);
     }
 
     saveState() { // Called when 'undo' is executed, and by 'erase' command class

@@ -1,8 +1,8 @@
 import { GlobalElems, GlobalState } from './global_state.js';
-import { generateMarkers, createSvgElement, updateViewBoxAspectRatio } from './svg_utils.js';
-import { } from './cli_utils.js';
-import { } from './mouse_utils.js';
-import { CommandHistory } from './command_exec.js';
+import { generateMarkers, createSvgElement, updateViewBoxAspectRatio } from './01_utils/svg_utils.js';
+import { } from './01_utils/cli_utils.js';
+import { } from './01_utils/mouse_utils.js';
+import { CommandHistory } from './01_utils/command_exec.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     generateMarkers();

@@ -1,4 +1,4 @@
-import { GlobalElems, GlobalState } from './global_state.js';
+import { GlobalElems, GlobalState } from '../global_state.js';
 import { processInput, updateObjectSelection } from './command_exec.js';
 import { removeHoverHighlights, applyZoom } from './svg_utils.js'
 

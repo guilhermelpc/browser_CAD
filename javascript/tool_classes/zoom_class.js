@@ -1,7 +1,6 @@
 import { GlobalElems, GlobalState } from '../global_state.js';
-import { updateTimelineCLI, resetCliInput } from '../cli_utils.js';
-import { unselectShapes } from '../command_exec.js';
-import { applyZoom, zoomAll } from '../svg_utils.js';
+import { updateTimelineCLI, resetCliInput } from '../01_utils/cli_utils.js';
+import { applyZoom, zoomAll } from '../01_utils/svg_utils.js';
 
 export class Zoom {
     constructor() {

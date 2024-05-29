@@ -1,6 +1,6 @@
-import { GlobalElems, GlobalState } from './global_state.js';
-import { generateCircleMarker } from './svg_markers/circle_marker.js';
-import { generateSquareMarker } from './svg_markers/square_marker.js';
+import { GlobalElems, GlobalState } from '../global_state.js';
+import { generateCircleMarker } from '../svg_markers/circle_marker.js';
+import { generateSquareMarker } from '../svg_markers/square_marker.js';
 
 // Create svg 'defs' elements and append reusable elements/markers to it:
 export function generateMarkers() {
@@ -85,7 +85,7 @@ export function removeHoverHighlights() {
         console.log(`err ${error}`);
         console.log(error.message);
     }
-} 
+}
 
 export function applyZoom(newX, newY, newWidth, newHeight) {
     GlobalState.ViewBox.x = newX;
@@ -101,9 +101,16 @@ export function applyZoom(newX, newY, newWidth, newHeight) {
     updateStyleZoom();
 }
 
-export function zoomAll() {
+export function zoomAll() { // Returns coords (after zoom)
+    
     // Early return if no object exists:
-    if (GlobalState.ShapeMap.size === 0) { return; }
+    if (GlobalState.ShapeMap.size === 0) { 
+        return { 
+            x: GlobalState.ViewBox.x, 
+            y: GlobalState.ViewBox.y, 
+            width: GlobalState.ViewBox.width, 
+            height: GlobalState.ViewBox.height }; 
+        }
 
     let globalXMin = Infinity;
     let globalYMin = Infinity;

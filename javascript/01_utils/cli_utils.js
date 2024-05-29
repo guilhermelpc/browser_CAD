@@ -1,4 +1,4 @@
-import { GlobalElems, GlobalState } from './global_state.js';
+import { GlobalElems, GlobalState } from '../global_state.js';
 import { processInput, unselectShapes, updateObjectSelection } from './command_exec.js';
 
 // CLI Timeline update - adds its argument to the CLI's timeline:
