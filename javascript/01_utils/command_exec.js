@@ -1,8 +1,8 @@
 import { GlobalState } from '../global_state.js';
 import { removeHoverHighlights } from './svg_utils.js';
-import { Line } from '../shape_classes/line_class.js';
-import { Erase } from '../tool_classes/erase_class.js';
-import { Zoom } from '../tool_classes/zoom_class.js';
+import { Line } from '../02_shape_classes/line_class.js';
+import { Erase } from '../03_tool_classes/erase_class.js';
+import { Zoom } from '../03_tool_classes/zoom_class.js';
 import { updateTimelineCLI, capitalizeFirstLetter } from './cli_utils.js';
 
 class ToolCommand {

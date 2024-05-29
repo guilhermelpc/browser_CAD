@@ -1,6 +1,6 @@
 import { GlobalElems, GlobalState } from '../global_state.js';
-import { generateCircleMarker } from '../svg_markers/circle_marker.js';
-import { generateSquareMarker } from '../svg_markers/square_marker.js';
+import { generateCircleMarker } from '../04_svg_markers/circle_marker.js';
+import { generateSquareMarker } from '../04_svg_markers/square_marker.js';
 
 // Create svg 'defs' elements and append reusable elements/markers to it:
 export function generateMarkers() {
