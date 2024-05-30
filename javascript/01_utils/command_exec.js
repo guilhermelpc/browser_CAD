@@ -26,6 +26,10 @@ class ToolCommand {
         }
     }
 
+    updateCoord(svgPoint) {
+        // this.tool.updateCoord(svgPoint);
+    }
+
     cancel() {
         this.tool.cancel();
     }
@@ -45,7 +49,7 @@ class ToolCommand {
 }
 
 class ShapeCommand {
-    constructor(shape) { 
+    constructor(shape) {
         this.shape = shape; // `shape` is object of a shape class, e.g. `new Line()`
 
         this.pendingCmdType = [null]; // Can include 'select', 'coord', 'string', 'multiple', 'viewbox' or null. Used by submitInputCli(), and by mouseDown functionality;
@@ -66,6 +70,10 @@ class ShapeCommand {
         } else {
             console.log(`pending command: ${GlobalState.PendingCommand.shape.type}`);
         }
+    }
+
+    updateCoord(svgPoint) {
+        this.shape.updateCoord(svgPoint);
     }
 
     edit() { 
@@ -140,6 +148,7 @@ const commandMap = {
     'line': () => GlobalState.ExecutionHistory.executeCommand(new ShapeCommand(new Line())),
     // 'm': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Move())),
     // 'move': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Move())),
+    'ortho': () => toggleProperty('Ortho'),
     'printstate': () => {
         console.log('Shape Map:', GlobalState.ShapeMap); 
         console.log('Shape Map Length:', GlobalState.ShapeMap.size);
@@ -147,7 +156,7 @@ const commandMap = {
         console.log(`Redo stack: ${GlobalState.ExecutionHistory.redoStack}`);
         console.log(`Pending: ${GlobalState.PendingCommand}`)
     },
-    'listshapes': () => { GlobalState.ShapeMap.forEach(shape => console.log(shape)) },
+    'listshapes': () => GlobalState.ShapeMap.forEach(shape => console.log(shape)),
     'redo': () => GlobalState.ExecutionHistory.redo(),
     'undo': () => GlobalState.ExecutionHistory.undo(),
     'z': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
@@ -209,3 +218,18 @@ export function unselectShapes() {
     updateObjectSelection();
 }
 
+export function toggleProperty(prop) {
+    GlobalState.Tools[prop] = !GlobalState.Tools[prop];
+    updateTimelineCLI(`${prop} ${GlobalState.Tools[prop] ? 'ON' : 'OFF'}`);
+
+    // If there's pending command, update it to reflect new prop:
+    if (GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType.includes('coord')) {
+        try {
+            const x = GlobalState.LastCursorCoords.x;
+            const y = GlobalState.LastCursorCoords.y;
+            GlobalState.PendingCommand.updateCoord({x,y});
+        } catch (error) {
+            console.log(`err ${error}`);
+        }
+    }
+}

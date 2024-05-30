@@ -1,5 +1,5 @@
 import { GlobalElems, GlobalState } from '../global_state.js';
-import { processInput, unselectShapes, updateObjectSelection } from './command_exec.js';
+import { processInput, unselectShapes, updateObjectSelection, toggleProperty } from './command_exec.js';
 
 // CLI Timeline update - adds its argument to the CLI's timeline:
 export function updateTimelineCLI(cmdString) {
@@ -43,6 +43,16 @@ export function submitInputCli(inputCmd, repeat=false) {
     return;
 }
 
+export function resetCliInput() {
+    GlobalElems.CommandLine.value = '';
+    GlobalElems.CliPrefix.innerHTML = '';
+    GlobalElems.CommandLine.placeholder = 'Enter commands...';
+}
+
+export function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 // Esc functionality:
 function handleEsc() {
     resetCliInput();
@@ -54,16 +64,6 @@ function handleEsc() {
     // Remove selection rectangle here (for canceling it easily in case the cursor gets outside during rectangle creation)
     // ...
 
-}
-
-export function resetCliInput() {
-    GlobalElems.CommandLine.value = '';
-    GlobalElems.CliPrefix.innerHTML = '';
-    GlobalElems.CommandLine.placeholder = 'Enter commands...';
-}
-
-export function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 // Keyboard event listener:
@@ -111,6 +111,11 @@ document.addEventListener('keydown', function(event) {
         // Applies the 'erase' commmand, but only if there are shapes already selected:
         if (GlobalState.SelectedShapes.length === 0) { return; }
         submitInputCli('erase', false)
+    }
+    // F8 key
+    if (event.key === 'F8') {
+        event.preventDefault();
+        toggleProperty('Ortho');
     }
     // Autofocus on CLI:
     if (document.activeElement !== GlobalElems.CommandLine) {

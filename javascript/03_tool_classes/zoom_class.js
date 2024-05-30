@@ -12,7 +12,7 @@ export class Zoom {
         this.beforeZoom = { x: null, y: null, width: null, height: null }; // Set only when command is executed, bc initial params might be changed by scroll-zoom
         this.afterZoom = { x: null, y: null, width: null, height: null };
         // CLI hints:
-        GlobalElems.CliPrefix.innerHTML = 'Zoom [All] or: Select area for zooming&nbsp;';
+        GlobalElems.CliPrefix.innerHTML = 'Zoom [All] or Select area for zooming:';
         GlobalElems.CommandLine.placeholder = '';
     }
 

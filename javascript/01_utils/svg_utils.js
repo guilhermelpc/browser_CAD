@@ -56,6 +56,18 @@ export function updateViewBoxAspectRatio(viewBoxGlobal, parentElement) {
         ${viewBoxGlobal.width} ${viewBoxGlobal.height}`);
 }
 
+export function changeBgColor(color) {
+    document.documentElement.style.backgroundColor = color;
+    document.body.style.backgroundColor = color;
+    // Get all SVG elements in the document
+    const svgElements = document.querySelectorAll('svg');
+    
+    // Iterate over each SVG element and change its background color
+    svgElements.forEach(function(svg) {
+        svg.style.backgroundColor = color;
+    });
+}
+
 // Change GlobalState and GlobalElems styles when zooming:
 export function updateStyleZoom() { // Called by updateViewBoxAspectRatio and scroll eventListener
     GlobalState.LineWidthDisplay = GlobalState.ViewBox.height / 500;

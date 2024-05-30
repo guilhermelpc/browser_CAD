@@ -5,14 +5,7 @@ import { removeHoverHighlights, applyZoom } from './svg_utils.js'
 // Handles command input called by click:
 function submitInputMouse(inputCmd, repeat=false) {
     GlobalElems.CommandLine.value = '';
-    
-    try {
-        processInput(inputCmd, repeat);
-    } catch (error) {
-        console.log(`err ${error}`);
-        console.log(error.message);
-    }
-
+    processInput(inputCmd, repeat);
     return;
 }
 
@@ -40,39 +33,35 @@ GlobalElems.SvgElement.addEventListener("mousedown", function(event) {
     // Ignore right-click
     if (event.button !== 0) { return; }
 
-    const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
-    const x = svgPoint.x;
-    const y = svgPoint.y;
+    GlobalState.LastCursorCoords = getCursorCoords(event, GlobalElems.SvgElement);
 
     // Use coords as input for any pending shape 'coord' command, and early returns if it exists:
     if (GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType.includes('coord')) {
-        submitInputMouse({x,y});
+        submitInputMouse({ x: GlobalState.LastCursorCoords.x, y: GlobalState.LastCursorCoords.y});
         GlobalState.SelectionCoords = null; // Resets variable so no selection is triggered by mouseup or move eventlistener
         return;
     }
 
     // Store click coords for selection if not early-returned above:
-    GlobalState.SelectionCoords = { x: svgPoint.x, y: svgPoint.y };
+    GlobalState.SelectionCoords = { x: GlobalState.LastCursorCoords.x, y: GlobalState.LastCursorCoords.y};
 
     if (GlobalState.SelectedShapes.length > 0) {
-        // Check if click is on any grab-mark for shape-editing
+        // Check if click is on any grab-mz ark for shape-editing
         // ...
 
     }
 });
 
-// - Mouse movement:
+// Mouse movement:
 GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
     removeHoverHighlights();
 
-    const svgPoint = getCursorCoords(event, GlobalElems.SvgElement);
-    const x = svgPoint.x;
-    const y = svgPoint.y;
+    GlobalState.LastCursorCoords = getCursorCoords(event, GlobalElems.SvgElement);
 
     // If there's pending command, update it in real time, and early return for no selection to occur:
     if (GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType.includes('coord')) {
         try {
-            GlobalState.PendingCommand.shape.updateCoord({x,y});
+            GlobalState.PendingCommand.updateCoord({ x: GlobalState.LastCursorCoords.x, y: GlobalState.LastCursorCoords.y});
         } catch (error) {
             console.log(`err ${error}`);
         }
@@ -81,7 +70,7 @@ GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
     // If mouse button is not being held (and there's no pending 'coord' command, as it would early-return above),
     // highlight close objects:
     if (!GlobalState.SelectionCoords) {
-        let dists = returnDistancesToShapes(svgPoint); // List like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
+        let dists = returnDistancesToShapes(GlobalState.LastCursorCoords); // List like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
         let closeShapes = []; // List like [{ shape: shape, dist: dist }, { shape: shape, dist: dist }]
         
         dists.forEach(dist => {dist.dist < 3 * GlobalState.CursorPrecision ? closeShapes.push(dist) : null});
@@ -92,8 +81,8 @@ GlobalElems.SvgElement.addEventListener("mousemove", function(event) {
 
     // If mouse button is being held, draw rectangle:
     } else {
-        const distX = GlobalState.SelectionCoords.x - svgPoint.x;
-        const distY = GlobalState.SelectionCoords.y - svgPoint.y;
+        const distX = GlobalState.SelectionCoords.x - GlobalState.LastCursorCoords.x;
+        const distY = GlobalState.SelectionCoords.y - GlobalState.LastCursorCoords.y;
 
         if (Math.abs(distX) > GlobalState.CursorPrecision || Math.abs(distY) > GlobalState.CursorPrecision) {
             console.log('selection rectangle update');
@@ -154,7 +143,7 @@ GlobalElems.SvgElement.addEventListener('contextmenu', function(event) {
 GlobalElems.SvgElement.addEventListener('wheel', function(event) {
     event.preventDefault();  // Prevent the page from scrolling
     const cursorPointPreZoom = getCursorCoords(event, GlobalElems.SvgElement);
-    GlobalState.ZoomCoords = { x: cursorPointPreZoom.x, y: cursorPointPreZoom.y };
+    GlobalState.LastCursorCoords = { x: cursorPointPreZoom.x, y: cursorPointPreZoom.y };
     
     // Scroll intensity:
     const baseScaleFactor = 1.1;
@@ -167,14 +156,14 @@ GlobalElems.SvgElement.addEventListener('wheel', function(event) {
         // Zoom in (scroll up trackpad)
         newWidth = GlobalState.ViewBox.width / dynamScaleFactor;
         newHeight = GlobalState.ViewBox.height / dynamScaleFactor;
-        newX = GlobalState.ZoomCoords.x - (GlobalState.ZoomCoords.x - GlobalState.ViewBox.x) / (dynamScaleFactor);
-        newY = GlobalState.ZoomCoords.y - (GlobalState.ZoomCoords.y - GlobalState.ViewBox.y) / (dynamScaleFactor);
+        newX = GlobalState.LastCursorCoords.x - (GlobalState.LastCursorCoords.x - GlobalState.ViewBox.x) / (dynamScaleFactor);
+        newY = GlobalState.LastCursorCoords.y - (GlobalState.LastCursorCoords.y - GlobalState.ViewBox.y) / (dynamScaleFactor);
     } else {
         // Zoom out (scroll down trackpad)
         newWidth = GlobalState.ViewBox.width * dynamScaleFactor;
         newHeight = GlobalState.ViewBox.height * dynamScaleFactor;
-        newX = GlobalState.ZoomCoords.x - (GlobalState.ZoomCoords.x - GlobalState.ViewBox.x) * (dynamScaleFactor);
-        newY = GlobalState.ZoomCoords.y - (GlobalState.ZoomCoords.y - GlobalState.ViewBox.y) * (dynamScaleFactor);
+        newX = GlobalState.LastCursorCoords.x - (GlobalState.LastCursorCoords.x - GlobalState.ViewBox.x) * (dynamScaleFactor);
+        newY = GlobalState.LastCursorCoords.y - (GlobalState.LastCursorCoords.y - GlobalState.ViewBox.y) * (dynamScaleFactor);
     }
 
     applyZoom(newX, newY, newWidth,newHeight);

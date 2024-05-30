@@ -18,11 +18,7 @@ export class Line {
         this.isComplete = false; // Set exclusively by this.consolidateShape()
         this.svgLine = null; // SVG line element, set by this.createShapeElement(), modified by other methods
         this.svgLineHighlight = null; // Thicker line that gets shown to highlight element
-        this.selectionMarks = {
-            start: null,
-            mid: null,
-            end: null
-        };
+        this.selectionMarks = { start: null, mid: null, end: null };
 
         this.createShapeElement();
 
@@ -55,20 +51,25 @@ export class Line {
             if (!point) {
                 updateTimelineCLI(`Invalid line coordinate input: '${input}'`);
                 console.error('Invalid coordinate input:', input);
-                return 0;
+                return;
             }
         }
-        this.points.push(point);
 
-        if (this.points.length === 1) {
+        if (this.points.length === 0) {
+            this.points.push(point);
+
             this.updateElement(point);
             GlobalElems.CliPrefix.innerHTML = 'Line: Specify second point:&nbsp;';
-            return 0;
-        } else if (this.points.length === 2 && !this.isComplete) {
+            return;
+        } else if (this.points.length === 1 && !this.isComplete) {
+            // Correct with ortho and/or snap:
+            this.points.push(this.correctCoords(point));
+
             this.consolidateShape();
-            return 1;
+
+            return;
         }
-        return 0;
+        return;
     }
 
     updateElement(cursorPos = null) { // Called by this.handleInput, this.updateCoord, and this.consolidateShape
@@ -87,13 +88,32 @@ export class Line {
         }
     }
 
-    updateCoord(svgPoint) { // Called by mousemove eventListener (in svg_utils.js) attached to GlobalElems.SvgElement
+    updateCoord(svgPoint) { // Called by submitInputMouse (in svg_utils.js) -> GlobalState.PendingCommand
         if (this.points.length != 1) { return; }
         const x = svgPoint.x;
         const y = svgPoint.y;
-        this.updateElement({x, y});
+
+        this.updateElement(this.correctCoords({x, y}));
     }
 
+    // Correction for Ortho and Snap:
+    correctCoords(coords) {
+        let x = coords.x;
+        let y = coords.y;
+
+        // Ortho correction (only for pending 2nd point):
+        if (this.points.length === 1 && GlobalState.Tools.Ortho) {
+            // If x displacement is larger than y displacement:
+            if (Math.abs(x - this.points[0].x) > Math.abs(y - this.points[0].y)) {
+                y = this.points[0].y;
+            } else {
+                x = this.points[0].x;
+            }
+        }
+        return { x: x, y: y };
+    }
+
+    // For placement of visual cues and snap:
     returnObjectCenter() { // Called by this.consolidateShape()
         const midX = (this.points[0].x + this.points[1].x) / 2;
         const midY = (this.points[0].y + this.points[1].y) / 2;
@@ -147,9 +167,9 @@ export class Line {
     consolidateShape() { // Called by this.handleInput(input) and this.restoreState(state)
         this.isComplete = true;
         this.pendingCmdType = [null];
-        this.center = this.returnObjectCenter(); // Bases on this.points
-        this.updateElement(); // Set line coords based on this.points
-        this.instantiateVisualCues(true); // Sets highlight line coords and selection grab-marks based on this.points
+        this.center = this.returnObjectCenter(); // Based on this.points
+        this.updateElement(); // Based on this.points. Sets this.svgLine coords
+        this.instantiateVisualCues(true); // Based on this.points. Sets highlight line coords and selection grab-marks
 
         GlobalState.ShapeMap.set(this.id, this);
     
@@ -171,7 +191,8 @@ export class Line {
         this.consolidateShape();
     }
 
-    cancel(){ // Cancel and/or deletes
+    // Cancel and/or delete:
+    cancel(){
         if (this.svgLine !== null) {
             this.svgLine.remove();
             this.svgLine = null;

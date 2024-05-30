@@ -2,13 +2,14 @@ html, body {
     margin: 0;
     height: 100%;
     overflow: hidden;
-    background: #555555;
+    background: #919191;
 }
 svg {
     display: block; /* removes bottom margin/gap */
-    background: #afafaf;
+    /* background: #afafaf; */
     width: 100vw;
     height: 100vh;
+    background: #919191;
     user-select: none; /* Prevents text selection */
     -webkit-user-select: none; /* Safari */
     -moz-user-select: none; /* Firefox */

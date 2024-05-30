@@ -2,7 +2,7 @@ export const GlobalState = {
     // SVG:
     AspectRatio: 1, // modified by svg_utils.js
     ViewBox: { x: 0, y: 0, width: 400, height: 400 }, // modified by svg_utils.js
-    ZoomCoords: { x: 200, y: 200 }, // In SVG coordinates, modified by svg_utils.js
+    LastCursorCoords: { x: 200, y: 200 }, // In SVG coordinates, modified by svg_utils.js
     SelectionCoords: null, // Stores the initial click coordinates for shape-selection
     CursorPrecisionFactor: 0.002, // Gets multiplied by screen height for dynamic scale
     CursorPrecision: (0.001 * 400), // Gets updated by svg_utils (update aspecratio and zoom functions)
@@ -17,10 +17,16 @@ export const GlobalState = {
     ShapeMap: new Map(), // Objects like Line etc. stored here
     SelectedShapes: [], // Objects like Line etc. stored here
     Layers: null,
+    // Drawing tools to be toggled:
+    Tools: { Ortho: false, Snap: false, Grid: false },
     // Styles:
     LineWidthDisplay: 2, // Updated by svg_utils.js (with updateViewBoxAspectRatio() and zoom functionality)
+    // Blue mode:
     HighlightColor: '#85a7d4',
     GrabMarkCokor: '#323ca8',
+    // Orange mode:
+    // HighlightColor: '#c9a38f',
+    // GrabMarkCokor: '#9c5935',
     HighlightThicknessFactor: 1.8,
     // Misc.
     TimeoutHandle: 0,
