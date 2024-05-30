@@ -52,7 +52,7 @@ class ShapeCommand {
     constructor(shape) {
         this.shape = shape; // `shape` is object of a shape class, e.g. `new Line()`
 
-        this.pendingCmdType = [null]; // Can include 'select', 'coord', 'string', 'multiple', 'viewbox' or null. Used by submitInputCli(), and by mouseDown functionality;
+        this.pendingCmdType = [null]; // Can include 'select', 'coord', 'string', 'multiple', 'viewbox' and null. Used by submitInputCli(), and by mouseDown functionality;
 
         this.memento = null; // Properties of shape, so it can be reconstructed with `redo`
     }
@@ -163,28 +163,35 @@ const commandMap = {
     'zoom': () => GlobalState.ExecutionHistory.executeCommand(new ToolCommand(new Zoom())),
 }
 
-// Called by submitInputCLI and submitInputMouse, and by keyboard eventlistener shortcuts.
-// The 'repeat' arg is just for a different text on the CLI.
+// Called by submitInputCLI and submitInputMouse. The 'repeat' arg is just for printing a different text on the CLI.
+// Commands like Ctrl+Z and Ctrl+Y bypass this function so they are not repeatable by enter or space.
 export function processInput(input, repeat=false) {
     if (typeof input === 'string') {
         input = input.toLowerCase();
     }
 
     if (GlobalState.PendingCommand) {
-        GlobalState.PendingCommand.handleInput(input); // Doesn't go through ExecutionHistory. History updated by PendingCommand when finished.
+        // Doesn't go through ExecutionHistory. History updated by PendingCommand when finished.
+        GlobalState.PendingCommand.handleInput(input);
+        // Early return:
+        return;
+    }
+
+    if (input in commandMap) {
+        // Update CLI Timeliine:
+        repeat ? updateTimelineCLI(`> Repeating last command: '${capitalizeFirstLetter(input)}'`) : updateTimelineCLI(`> '${capitalizeFirstLetter(input)}'`);
+        // Memory for repeating commands in CLI:
+        GlobalState.LastSuccessfulCmd = input; 
+        // Execute input command:
+        commandMap[input]();
     } else {
-        if (input in commandMap) {
-            GlobalState.LastSuccessfulCmd = input; // Memory for repeating commands in CLI
-            repeat ? updateTimelineCLI(`> Repeating last command: '${capitalizeFirstLetter(input)}'`) : updateTimelineCLI(`> '${capitalizeFirstLetter(input)}'`);
-            commandMap[input]();
-        } else {
-            console.error('Invalid command:', input);
-            updateTimelineCLI(`Invalid command: '${input}'`);
-        }
+        // Invalid command -- error warning:
+        updateTimelineCLI(`Invalid command: '${input}'`);
+        console.error('Invalid command:', input);
     }
 }
 
-export function parseCoords(input) { // if error, returns null
+export function parseCoords(input) { // Returns null if error.
     const parts = input.trim().split(',');
 
     if (parts.length != 2) { 
@@ -209,7 +216,7 @@ export function updateObjectSelection() { // Called by mouseUp eventListener. Al
     GlobalState.ShapeMap.forEach(shape => { shape.isSelected(false) }); 
     // Then activate only on the ones that are in GlobalState.SelectedShapes:
     GlobalState.SelectedShapes.forEach(shape => { shape.isSelected(true) }); 
-
+    // Remove highlights only for unselected objects:
     removeHoverHighlights();
 }
 

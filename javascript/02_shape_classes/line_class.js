@@ -12,8 +12,8 @@ export class Line {
         this.type = 'line';
         this.id = `${this.type}${++Line.lastId}`
         // Variables to be modified:
-        this.pendingCmdType = [null]; // Set to 'cood' by this.createShapeElement()
-        this.points = []; // List of coordinates-objects, e.g. [{ x1, y1 }, { x2, y2 }]
+        this.pendingCmdType = [null]; // Set to ['cood'] by this.createShapeElement(), and [null] by this.consolidateShape(). 
+        this.points = []; // List of coordinate-objects, e.g. [{ x1, y1 }, { x2, y2 }].
         this.center = null; // Coordinates { x, y } of the center of the Line. Used to place the circle marker at the middle.
         this.isComplete = false; // Set exclusively by this.consolidateShape()
         this.svgLine = null; // SVG line element, set by this.createShapeElement(), modified by other methods
@@ -29,6 +29,7 @@ export class Line {
 
     createShapeElement() { // Creates also one thicker line for dynamic highlighting
         this.pendingCmdType = ['coord'];
+
         if (!this.svgLine) {
             this.svgLineHighlight = createSvgElement('line', {
                 'stroke': 'transparent', 'stroke-width': `${GlobalState.LineWidthDisplay * GlobalState.HighlightThicknessFactor}`
@@ -46,8 +47,17 @@ export class Line {
 
     handleInput(input) { // Called by command_exec.js processInput(...) -> ShapeCommand.handleInput(input) if there's pending command
         let point = input; // point: { x, y } object or 'x,y' string
+
+        // Parse CLI input:
         if (typeof input === 'string') {
-            point = parseCoords(input); // parseCoords(input) returns null for invalid input
+            // Use relative coords for the 2nd point if input starts with '@':
+            if (input[0] === '@' && this.points.length === 1) {
+                let relPoint = parseCoords(input.slice(1));
+                point = relPoint ? { x: this.points[0].x + relPoint.x, y: this.points[0].y + relPoint.y } : null;
+            } else {
+                point = parseCoords(input); // parseCoords(input) returns null for invalid input
+            }
+            // Error warning:
             if (!point) {
                 updateTimelineCLI(`Invalid line coordinate input: '${input}'`);
                 console.error('Invalid coordinate input:', input);
@@ -57,16 +67,21 @@ export class Line {
 
         if (this.points.length === 0) {
             this.points.push(point);
-
             this.updateElement(point);
+
             GlobalElems.CliPrefix.innerHTML = 'Line: Specify second point:&nbsp;';
             return;
-        } else if (this.points.length === 1 && !this.isComplete) {
-            // Correct with ortho and/or snap:
-            this.points.push(this.correctCoords(point));
+        }
+
+        if (this.points.length === 1 && !this.isComplete) {
+            // Correct with ortho and/or snap only if coord is not a CLI input:
+            if (typeof input != 'string') {
+                this.points.push(this.correctCoords(point));
+            } else {
+                this.points.push(point);
+            }
 
             this.consolidateShape();
-
             return;
         }
         return;
