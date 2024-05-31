@@ -4,6 +4,7 @@ import { Line } from '../02_shape_classes/line_class.js';
 import { Erase } from '../03_tool_classes/erase_class.js';
 import { Zoom } from '../03_tool_classes/zoom_class.js';
 import { updateTimelineCLI, capitalizeFirstLetter } from './cli_utils.js';
+import { isValidNumber, degreesToRadians } from './math_utils.js';
 
 class ToolCommand {
     constructor(tool) {
@@ -191,23 +192,39 @@ export function processInput(input, repeat=false) {
     }
 }
 
+// Used to turn text like '10.05,25.' or '14<11.5' into { x, y } objects:
+// Doesn't work with '@' at the beginning -- this should be handled by the caller of this function.
+// Also doesn't work with single number input -- this should also be handled by caller.
 export function parseCoords(input) { // Returns null if error.
-    const parts = input.trim().split(',');
+    // Trim whitespace just in case:
+    const parts = input.trim();
 
-    if (parts.length != 2) { 
-        console.error('Invalid input format: Please enter coordinates in the format "x,y"');
-        return null;
+    // Deal with cartesian coords 'x,y':
+    if (input.includes(',')) {
+        const parts = input.trim().split(',');
+        if (parts.length != 2) {
+            console.error('Invalid input format.');
+            return null;
+        }
+        const x = parseFloat(parts[0]);
+        const y = parseFloat(parts[1]);
+        if (!isNaN(x) && !isNaN(y)) {
+            // Reverse y coord so positive y means up:
+            return { x: x, y: - y };
+        } else {
+            console.error('Invalid input: Coordinates must be valid numbers.');
+            return null;
+        }
     }
 
-    const x = parseFloat(parts[0]);
-    const y = parseFloat(parts[1]);
+    // Deal with polar coords 'r<a':
+    if (input.includes('<')) {
 
-    if (!isNaN(x) && !isNaN(y)) {
-        return { x: x, y: - y }; // invert y coord
-    } else {
-        console.error('Invalid input: Coordinates must be valid numbers.');
-        return null;
     }
+
+    // If conditions above not met:
+    console.error('Invalid input format.');
+    return null;
 }
 
 // Execute isSelected shape methods to indicate whether they're selected:
@@ -225,11 +242,12 @@ export function unselectShapes() {
     updateObjectSelection();
 }
 
+// For toggling Ortho, Snap, etc.:
 export function toggleProperty(prop) {
     GlobalState.Tools[prop] = !GlobalState.Tools[prop];
     updateTimelineCLI(`${prop} ${GlobalState.Tools[prop] ? 'ON' : 'OFF'}`);
 
-    // If there's pending command, update it to reflect new prop:
+    // If there's pending command, update its coords to reflect new prop:
     if (GlobalState.PendingCommand && GlobalState.PendingCommand.pendingCmdType.includes('coord')) {
         try {
             const x = GlobalState.LastCursorCoords.x;

@@ -2,6 +2,7 @@ import { GlobalElems, GlobalState } from '../global_state.js';
 import { createSvgElement } from '../01_utils/svg_utils.js';
 import { parseCoords } from '../01_utils/command_exec.js';
 import { updateTimelineCLI, resetCliInput } from '../01_utils/cli_utils.js';
+import { isValidNumber } from '../01_utils/math_utils.js';
 
 export class Line {
     static lastId = 0;
@@ -46,15 +47,25 @@ export class Line {
     }
 
     handleInput(input) { // Called by command_exec.js processInput(...) -> ShapeCommand.handleInput(input) if there's pending command
-        let point = input; // point: { x, y } object or 'x,y' string
+        let point = input; // { x, y } object or 'x,y', '@x,y', 'x<y', '@x<y', 'l' string
 
         // Parse CLI input:
         if (typeof input === 'string') {
-            // Use relative coords for the 2nd point if input starts with '@':
             if (input[0] === '@' && this.points.length === 1) {
+                // Relative '@x,y' or '@x<y' inputs for second point:
                 let relPoint = parseCoords(input.slice(1));
                 point = relPoint ? { x: this.points[0].x + relPoint.x, y: this.points[0].y + relPoint.y } : null;
+            } else if (isValidNumber(input) && this.points.length === 1) {
+                // Relative 'l' input for second point:
+                const l = parseFloat(input);
+                const distX = GlobalState.LastCursorCoords.x - this.points[0].x;
+                const distY = GlobalState.LastCursorCoords.y - this.points[0].y;
+                const lenToCursor = Math.sqrt(distX ** 2 + distY ** 2);
+                const angleRad = Math.atan2(distY, distX);
+                point = { x: this.points[0].x + l * Math.cos(angleRad), y: this.points[0].y + l * Math.sin(angleRad) };
+                console.log(`Init ${this.points[0].x} ,${this.points[0].y} , point ${point.x}, ${point.y}`)
             } else {
+                // Normal 'x,y' or 'x<y' inputs for either first or second point:
                 point = parseCoords(input); // parseCoords(input) returns null for invalid input
             }
             // Error warning:
@@ -74,8 +85,8 @@ export class Line {
         }
 
         if (this.points.length === 1 && !this.isComplete) {
-            // Correct with ortho and/or snap only if coord is not a CLI input:
-            if (typeof input != 'string') {
+            // Correct with ortho and/or snap only if coord is not a CLI input, or is a CLI input with only length:
+            if (typeof input != 'string' || isValidNumber(input)) {
                 this.points.push(this.correctCoords(point));
             } else {
                 this.points.push(point);
