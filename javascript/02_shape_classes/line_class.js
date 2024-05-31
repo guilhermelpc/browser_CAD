@@ -20,12 +20,11 @@ export class Line {
         this.svgLine = null; // SVG line element, set by this.createShapeElement(), modified by other methods
         this.svgLineHighlight = null; // Thicker line that gets shown to highlight element
         this.selectionMarks = { start: null, mid: null, end: null };
-
-        this.createShapeElement();
-
         // CLI hints:
         GlobalElems.CliPrefix.innerHTML = 'Line: Specify first point:&nbsp;';
         GlobalElems.CommandLine.placeholder = 'x,y';
+        
+        this.createShapeElement();
     }
 
     createShapeElement() { // Creates also one thicker line for dynamic highlighting
@@ -39,7 +38,6 @@ export class Line {
             this.svgLine = createSvgElement('line', {
                 'stroke': 'black', 'stroke-width': `${GlobalState.LineWidthDisplay}`
             }, this.svg);
-
         } else {
             this.svg.appendChild(this.svgLineHighlight);
             this.svg.appendChild(this.svgLine);
@@ -49,7 +47,7 @@ export class Line {
     handleInput(input) { // Called by command_exec.js processInput(...) -> ShapeCommand.handleInput(input) if there's pending command
         let point = input; // { x, y } object or 'x,y', '@x,y', 'x<y', '@x<y', 'l' string
 
-        // Parse CLI input:
+        // Parse input comming from CLI:
         if (typeof input === 'string') {
             if (input[0] === '@' && this.points.length === 1) {
                 // Relative '@x,y' or '@x<y' inputs for second point:
@@ -60,15 +58,14 @@ export class Line {
                 const l = parseFloat(input);
                 const distX = GlobalState.LastCursorCoords.x - this.points[0].x;
                 const distY = GlobalState.LastCursorCoords.y - this.points[0].y;
-                const lenToCursor = Math.sqrt(distX ** 2 + distY ** 2);
                 const angleRad = Math.atan2(distY, distX);
                 point = { x: this.points[0].x + l * Math.cos(angleRad), y: this.points[0].y + l * Math.sin(angleRad) };
                 console.log(`Init ${this.points[0].x} ,${this.points[0].y} , point ${point.x}, ${point.y}`)
             } else {
-                // Normal 'x,y' or 'x<y' inputs for either first or second point:
+                // Normal (non-relative) 'x,y' or 'x<y' inputs for either first or second point:
                 point = parseCoords(input); // parseCoords(input) returns null for invalid input
             }
-            // Error warning:
+            // Error catching for early return:
             if (!point) {
                 updateTimelineCLI(`Invalid line coordinate input: '${input}'`);
                 console.error('Invalid coordinate input:', input);
@@ -79,7 +76,6 @@ export class Line {
         if (this.points.length === 0) {
             this.points.push(point);
             this.updateElement(point);
-
             GlobalElems.CliPrefix.innerHTML = 'Line: Specify second point:&nbsp;';
             return;
         }
@@ -91,17 +87,19 @@ export class Line {
             } else {
                 this.points.push(point);
             }
-
             this.consolidateShape();
             return;
+
         }
         return;
     }
 
     updateElement(cursorPos = null) { // Called by this.handleInput, this.updateCoord, and this.consolidateShape
+        // Early return just in case:
         if (!this.svgLine) { 
             return; 
         }
+
         this.svgLine.setAttribute('x1', this.points[0].x);
         this.svgLine.setAttribute('y1', this.points[0].y);
 
@@ -114,11 +112,10 @@ export class Line {
         }
     }
 
-    updateCoord(svgPoint) { // Called by submitInputMouse (in svg_utils.js) -> GlobalState.PendingCommand
+    updateCoord(svgPoint) { // Called by submitInputMouse -> GlobalState.PendingCommand.updateCoord(svgPoint)
         if (this.points.length != 1) { return; }
         const x = svgPoint.x;
         const y = svgPoint.y;
-
         this.updateElement(this.correctCoords({x, y}));
     }
 
@@ -126,7 +123,7 @@ export class Line {
     correctCoords(coords) {
         let x = coords.x;
         let y = coords.y;
-
+        
         // Ortho correction (only for pending 2nd point):
         if (this.points.length === 1 && GlobalState.Tools.Ortho) {
             // If x displacement is larger than y displacement:
@@ -136,6 +133,7 @@ export class Line {
                 x = this.points[0].x;
             }
         }
+
         return { x: x, y: y };
     }
 
@@ -157,8 +155,6 @@ export class Line {
             this.svgLineHighlight.setAttribute('stroke', 'transparent');
 
             // Create marks for grabbing:
-
-            let width = GlobalElems.SquareReusableElement.width.baseVal.value;
             Object.keys(this.selectionMarks).forEach(key => {
                 if (this.selectionMarks[key] === null) {
                     this.selectionMarks[key] = document.createElementNS("http://www.w3.org/2000/svg", "use");
@@ -180,7 +176,9 @@ export class Line {
                 this.svg.appendChild(this.selectionMarks[key]);
             });
         }
+
         if (option === false) {
+            // Remove marker shapes from svg:
             Object.keys(this.selectionMarks).forEach(key => {
                 if (this.selectionMarks[key] !== null) {
                     this.selectionMarks[key].remove();
@@ -196,11 +194,8 @@ export class Line {
         this.center = this.returnObjectCenter(); // Based on this.points
         this.updateElement(); // Based on this.points. Sets this.svgLine coords
         this.instantiateVisualCues(true); // Based on this.points. Sets highlight line coords and selection grab-marks
-
         GlobalState.ShapeMap.set(this.id, this);
-    
         resetCliInput();
-
         this.updateDisplayZoom();
     }
 
@@ -223,10 +218,12 @@ export class Line {
             this.svgLine.remove();
             this.svgLine = null;
         }
+
         if (this.svgLineHighlight !== null) {
             this.svgLineHighlight.remove();
             this.svgLineHighlight = null;
         }
+
         this.instantiateVisualCues(false); 
         resetCliInput();
         GlobalState.ShapeMap.delete(this.id);
@@ -263,7 +260,6 @@ export class Line {
 
         const A = input.x - this.points[0].x
         const B = input.y - this.points[0].y
-
         const C = this.points[1].x - this.points[0].x;
         const D = this.points[1].y - this.points[0].y
 

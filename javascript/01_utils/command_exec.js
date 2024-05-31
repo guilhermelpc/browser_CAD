@@ -193,7 +193,7 @@ export function processInput(input, repeat=false) {
 }
 
 // Used to turn text like '10.05,25.' or '14<11.5' into { x, y } objects:
-// Doesn't work with '@' at the beginning -- this should be handled by the caller of this function.
+// Doesn't work with '@' at the start -- this should be handled by the caller of this function.
 // Also doesn't work with single number input -- this should also be handled by caller.
 export function parseCoords(input) { // Returns null if error.
     // Trim whitespace just in case:
@@ -202,24 +202,29 @@ export function parseCoords(input) { // Returns null if error.
     // Deal with cartesian coords 'x,y':
     if (input.includes(',')) {
         const parts = input.trim().split(',');
-        if (parts.length != 2) {
-            console.error('Invalid input format.');
-            return null;
-        }
-        const x = parseFloat(parts[0]);
-        const y = parseFloat(parts[1]);
-        if (!isNaN(x) && !isNaN(y)) {
+        if (parts.length === 2 && isValidNumber(parts[0]) && isValidNumber(parts[1])) {
+            const x = parseFloat(parts[0]);
+            const y = parseFloat(parts[1]);
             // Reverse y coord so positive y means up:
             return { x: x, y: - y };
         } else {
-            console.error('Invalid input: Coordinates must be valid numbers.');
+            console.error('Invalid input format.');
             return null;
         }
     }
 
     // Deal with polar coords 'r<a':
     if (input.includes('<')) {
-
+        const parts = input.trim().split('<');
+        if (parts.length === 2 && isValidNumber(parts[0]) && isValidNumber(parts[1])) {
+            const radius = parseFloat(parts[0]);
+            const angle = degreesToRadians(parseFloat(parts[1]));
+            // Reverse y coord so positive y means up:
+            return { x: radius * Math.cos(angle), y: - radius * Math.sin(angle) };
+        } else {
+            console.error('Invalid input format.');
+            return null;
+        }
     }
 
     // If conditions above not met:
